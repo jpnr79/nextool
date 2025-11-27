@@ -1,0 +1,211 @@
+<?php
+
+if (!defined('GLPI_ROOT')) {
+   die("Sorry. You can't access directly to this file");
+}
+
+class PluginNextoolModuleCardHelper {
+
+   public static function renderActions(array $state): string {
+      $html = [];
+
+      $catalogDisabled = empty($state['catalog_is_enabled']);
+
+      // Termos de uso sempre aparece antes da validação da licença/plano
+      if (!$state['has_validated_plan']) {
+         $html[] = self::renderPlainButton(
+            __('Termos de uso', 'nextool'),
+            'btn btn-sm btn-outline-primary',
+            'ti ti-file-text',
+            "nextoolValidateLicense(this);"
+         );
+         return implode('', $html);
+      }
+
+      if ($state['requires_remote_download']) {
+         if ($state['has_validated_plan'] && $state['is_paid'] && !$state['can_use_module']) {
+            // Licença válida mas módulo pago não permitido: incentivar contratação em vez de download
+            $html[] = self::renderLink(
+               __('Contratar', 'nextool'),
+               'btn btn-sm btn-outline-primary',
+               'ti ti-shopping-cart',
+               $state['upgrade_url']
+            );
+            return implode('', $html);
+         }
+
+         if ($catalogDisabled) {
+            $html[] = self::renderBadge(__('Download indisponível (catálogo desativado)', 'nextool'));
+            return implode('', $html);
+         }
+
+         $html[] = self::renderActionForm(
+            $state,
+            'download',
+            __('Download', 'nextool'),
+            'btn btn-sm btn-success module-action',
+            'ti ti-cloud-download',
+            !$state['distribution_configured'] || !$state['can_use_module'],
+            !$state['distribution_configured']
+               ? __('Configure o ContainerAPI para liberar o download.', 'nextool')
+               : null
+         );
+         return implode('', $html);
+      }
+
+      if (!$state['is_installed']) {
+         if (!$state['can_use_module']) {
+            $html[] = self::renderLink(
+               __('Contratar', 'nextool'),
+               'btn btn-sm btn-outline-primary',
+               'ti ti-shopping-cart',
+               $state['upgrade_url']
+            );
+            return implode('', $html);
+         }
+
+         if ($catalogDisabled) {
+            $html[] = self::renderBadge(__('Módulo desativado no catálogo', 'nextool'));
+         } else {
+            $html[] = self::renderActionForm(
+               $state,
+               'install',
+               __('Instalar', 'nextool'),
+               'btn btn-sm btn-success module-action',
+               'ti ti-download'
+            );
+         }
+      } else {
+         if ($catalogDisabled) {
+            $html[] = self::renderBadge(__('Catálogo: módulo desativado', 'nextool'), 'badge bg-secondary me-1');
+         }
+
+         if (!empty($state['update_available'])) {
+            $html[] = self::renderActionForm(
+               $state,
+               'update',
+               __('Atualizar', 'nextool'),
+               'btn btn-sm btn-outline-primary module-action',
+               'ti ti-arrow-up',
+               !$state['can_use_module'] || $catalogDisabled
+            );
+         }
+
+         if ($state['is_enabled']) {
+            $html[] = self::renderActionForm(
+               $state,
+               'disable',
+               __('Desativar', 'nextool'),
+               'btn btn-sm btn-warning module-action',
+               'ti ti-player-pause'
+            );
+         } else {
+            $html[] = self::renderActionForm(
+               $state,
+               'enable',
+               __('Ativar', 'nextool'),
+               'btn btn-sm btn-success module-action',
+               'ti ti-player-play',
+               !$state['can_use_module'] || $catalogDisabled
+            );
+
+            $html[] = self::renderActionForm(
+               $state,
+               'uninstall',
+               __('Desinstalar', 'nextool'),
+               'btn btn-sm btn-danger module-action',
+               'ti ti-trash',
+               false,
+               __('Tem certeza? A funcionalidade será removida, mas os dados permanecerão.', 'nextool')
+            );
+         }
+      }
+
+      if (!$state['is_installed'] && $state['has_module_data']) {
+         $html[] = self::renderActionForm(
+            $state,
+            'purge_data',
+            __('Apagar dados', 'nextool'),
+            'btn btn-sm btn-outline-danger module-action',
+            'ti ti-database-off',
+            false,
+            __('Esta ação remove tabelas e registros relacionados ao módulo. Deseja continuar?', 'nextool')
+         );
+
+         $html[] = self::renderLink(
+            __('Acessar dados', 'nextool'),
+            'btn btn-sm btn-outline-secondary',
+            'ti ti-database-search',
+            $state['data_url'],
+            true
+         );
+      }
+
+      if ($state['show_config_button']) {
+         $html[] = self::renderLink(
+            __('Configurações', 'nextool'),
+            'btn btn-sm btn-primary',
+            'ti ti-settings',
+            $state['config_url']
+         );
+      }
+
+      return implode('', $html);
+   }
+
+   private static function renderPlainButton(string $label, string $classes, string $icon, string $onclick): string {
+      return sprintf(
+         "<button type='button' class='%s me-1' onclick=\"%s\"><i class='%s me-1'></i>%s</button>",
+         $classes,
+         Html::entities_deep($onclick),
+         $icon,
+         $label
+      );
+   }
+
+   private static function renderLink(string $label, string $classes, string $icon, string $url, bool $newTab = false): string {
+      $target = $newTab ? " target='_blank' rel='noopener'" : '';
+      return sprintf(
+         "<a href='%s' class='%s me-1'%s><i class='%s me-1'></i>%s</a>",
+         Html::entities_deep($url),
+         $classes,
+         $target,
+         $icon,
+         $label
+      );
+   }
+
+   private static function renderBadge(string $label, string $classes = 'badge bg-secondary'): string {
+      return sprintf("<span class='%s me-1'>%s</span>", $classes, $label);
+   }
+
+   private static function renderActionForm(
+      array $state,
+      string $action,
+      string $label,
+      string $buttonClass,
+      string $iconClass,
+      bool $disabled = false,
+      ?string $confirmMessage = null
+   ): string {
+      $actionUrl = Plugin::getWebDir('nextool') . '/ajax/module_action.php';
+      $token = Session::getNewCSRFToken();
+
+      $fields = '';
+      $fields .= Html::hidden('_glpi_csrf_token', ['value' => $token]);
+      $fields .= "<input type='hidden' name='module' value='" . Html::entities_deep($state['module_key']) . "'>";
+      $fields .= "<input type='hidden' name='action' value='" . Html::entities_deep($action) . "'>";
+
+      $disabledAttr = $disabled ? ' disabled' : '';
+      $confirmAttr = '';
+      if (!empty($confirmMessage)) {
+         $confirmAttr = " onclick=\"return confirm(" . json_encode($confirmMessage, JSON_HEX_APOS | JSON_HEX_QUOT) . ");\"";
+      }
+
+      $buttonHtml = "<button type='submit' class='{$buttonClass}'{$disabledAttr}{$confirmAttr}><i class='{$iconClass} me-1'></i>{$label}</button>";
+
+      return "<form method='post' action='{$actionUrl}' class='d-inline module-action-form me-1'>{$fields}{$buttonHtml}</form>";
+   }
+}
+
+
