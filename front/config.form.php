@@ -418,7 +418,7 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                   </div>
                   <div class="small mt-2">
                      <a href="https://nextoolsolutions.ai/" target="_blank" class="text-white text-decoration-underline me-2">Conheça a NexTool Solutions</a>
-                     <a href="https://nextoolsolutions.ai/termos" target="_blank" class="text-white-50 text-decoration-underline">Termos de uso</a>
+                     <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md" target="_blank" class="text-white-50 text-decoration-underline">Termos de uso</a>
                   </div>
                </div>
 

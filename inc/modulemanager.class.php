@@ -56,19 +56,31 @@ class PluginNextoolModuleManager {
    /** @var array<string, string[]> Mapeamento de tabelas utilizadas por cada módulo */
    private $moduleDataTables = [
       'helloworld' => [
-         'glpi_plugin_nextool_helloworld_*',
+         'glpi_plugin_nextool_helloworld',
       ],
       'aiassist' => [
-         'glpi_plugin_nextool_aiassist_*',
+         'glpi_plugin_nextool_aiassist_config',
+         'glpi_plugin_nextool_aiassist_ticketdata',
+         'glpi_plugin_nextool_aiassist_requests',
+         'glpi_plugin_nextool_aiassist_quota',
+         'glpi_plugin_nextool_aiassist_config_history',
       ],
       'autentique' => [
-         'glpi_plugin_nextool_autentique_*',
+         'glpi_plugin_nextool_autentique_configs',
+         'glpi_plugin_nextool_autentique_docs',
+         'glpi_plugin_nextool_autentique_signers',
       ],
       'mailinteractions' => [
-         'glpi_plugin_nextool_mailinteractions_*',
+         'glpi_plugin_nextool_mailinteractions_tokens',
+         'glpi_plugin_nextool_mailinteractions_configs',
+         'glpi_plugin_nextool_mailinteractions_configs_logs',
+         'glpi_plugin_nextool_mailinteractions_approvals',
+         'glpi_plugin_nextool_mailinteractions_validations',
+         'glpi_plugin_nextool_mailinteractions_satisfaction',
       ],
       'smartassign' => [
-         'glpi_plugin_nextool_smartassign_*',
+         'glpi_plugin_nextool_smartassign_assignments',
+         'glpi_plugin_nextool_smartassign_options',
       ],
    ];
 
@@ -801,7 +813,7 @@ class PluginNextoolModuleManager {
       global $DB;
 
       foreach ($this->getModuleDataTables($moduleKey) as $table) {
-         if ($this->tableMatches($table)) {
+         if ($DB->tableExists($table)) {
             return true;
          }
       }
@@ -856,45 +868,15 @@ class PluginNextoolModuleManager {
 
       $droppedAny = false;
 
-      foreach ($tables as $tablePattern) {
-         $matchedTables = $this->resolveTablePattern($tablePattern);
-         foreach ($matchedTables as $table) {
-            $DB->query("DROP TABLE IF EXISTS `$table`");
-            $droppedAny = true;
+      foreach ($tables as $table) {
+         if (!$DB->tableExists($table)) {
+            continue;
          }
+         $DB->queryOrDie("DROP TABLE IF EXISTS `$table`", sprintf('Erro ao remover tabela %s', $table));
+         $droppedAny = true;
       }
 
       return $droppedAny;
-   }
-
-   private function tableMatches(string $pattern): bool {
-      global $DB;
-
-      if (strpos($pattern, '*') === false) {
-         return $DB->tableExists($pattern);
-      }
-
-      return !empty($this->resolveTablePattern($pattern));
-   }
-
-   private function resolveTablePattern(string $pattern): array {
-      global $DB;
-
-      if (strpos($pattern, '*') === false) {
-         return $DB->tableExists($pattern) ? [$pattern] : [];
-      }
-
-      $like = str_replace('*', '%', $pattern);
-      $tables = [];
-      $query = "SHOW TABLES LIKE " . $DB->quoteValue($like);
-      $result = $DB->query($query);
-      if ($result) {
-         while ($row = $DB->fetchArray($result)) {
-            $tables[] = array_values($row)[0];
-         }
-      }
-
-      return $tables;
    }
 
    /**
