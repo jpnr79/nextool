@@ -34,8 +34,25 @@ if (empty($action) || empty($moduleKey)) {
 // Carrega ModuleManager
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/basemodule.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/licenseconfig.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/licensevalidator.class.php';
 
 $manager = PluginNextoolModuleManager::getInstance();
+
+$actionsThatResetCache = ['download', 'install'];
+if (in_array($action, $actionsThatResetCache, true)) {
+   $manager->clearCache();
+   PluginNextoolLicenseConfig::resetCache();
+   if ($action === 'download') {
+      PluginNextoolLicenseValidator::validateLicense([
+         'force_refresh' => true,
+         'context'       => [
+            'origin'            => 'module_action_download',
+            'requested_modules' => [$moduleKey],
+         ],
+      ]);
+   }
+}
 
 // Executa ação
 $result = ['success' => false, 'message' => 'Ação inválida', 'forcetab' => 'PluginNextoolSetup$1'];

@@ -21,6 +21,89 @@ require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 // Ações específicas
 $action = $_POST['action'] ?? '';
 
+if ($action === 'accept_policies') {
+   $distributionSettings = PluginNextoolConfig::getDistributionSettings();
+   $baseUrl = trim((string)($distributionSettings['base_url'] ?? ''));
+   $clientIdentifier = trim((string)($distributionSettings['client_identifier'] ?? ''));
+
+   if ($baseUrl === '' || $clientIdentifier === '') {
+      Session::addMessageAfterRedirect(
+         __('Configure a URL do ContainerAPI e gere o identificador do ambiente antes de aceitar as políticas de uso.', 'nextool'),
+         false,
+         WARNING
+      );
+      Html::back();
+      exit;
+   }
+
+   $needsBootstrap = $baseUrl !== '' && $clientIdentifier !== '' && empty($distributionSettings['client_secret']);
+   if ($needsBootstrap) {
+      $secret = PluginNextoolDistributionClient::bootstrapClientSecret($baseUrl, $clientIdentifier);
+      if ($secret !== null) {
+         Config::setConfigurationValues('plugin:nextool_distribution', array_merge($distributionSettings, [
+            'client_secret' => $secret,
+         ]));
+         Session::addMessageAfterRedirect(
+            __('Segredo HMAC provisionado automaticamente com sucesso.', 'nextool'),
+            false,
+            INFO
+         );
+         $distributionSettings = PluginNextoolConfig::getDistributionSettings();
+      } else {
+         Session::addMessageAfterRedirect(
+            __('Não foi possível obter o segredo HMAC automaticamente. Verifique a URL ou tente novamente mais tarde.', 'nextool'),
+            false,
+            WARNING
+         );
+         Html::back();
+         exit;
+      }
+   }
+
+   $manager = PluginNextoolModuleManager::getInstance();
+   $manager->clearCache();
+   PluginNextoolLicenseConfig::resetCache();
+
+   $result = PluginNextoolLicenseValidator::validateLicense([
+      'force_refresh' => true,
+      'context'       => [
+         'origin'            => 'policies_acceptance',
+         'requested_modules' => ['catalog_bootstrap'],
+      ],
+   ]);
+
+   if (!empty($result['valid'])) {
+      Session::addMessageAfterRedirect(
+         __('Políticas aceitas e catálogo sincronizado com sucesso. Os módulos oficiais foram liberados.', 'nextool'),
+         false,
+         INFO
+      );
+   } else {
+      $message = $result['message'] ?? __('Não foi possível sincronizar o catálogo de módulos. Tente novamente em instantes.', 'nextool');
+      Session::addMessageAfterRedirect(
+         $message,
+         false,
+         WARNING
+      );
+   }
+
+   PluginNextoolConfigAudit::log([
+      'section' => 'validation',
+      'action'  => 'policies_acceptance',
+      'result'  => !empty($result['valid']) ? 1 : 0,
+      'message' => $result['message'] ?? null,
+      'details' => [
+         'http_code'       => $result['http_code'] ?? null,
+         'plan'            => $result['plan'] ?? null,
+         'contract_active' => $result['contract_active'] ?? null,
+         'license_status'  => $result['license_status'] ?? null,
+      ],
+   ]);
+
+   Html::back();
+   exit;
+}
+
 // Snapshot antes da alteração
 $previousGlobalConfig = PluginNextoolConfig::getConfig();
 $licenseRow = PluginNextoolLicenseConfig::getDefaultConfig();
@@ -142,6 +225,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'validate_license') {
          );
       }
    }
+
+   $manager = PluginNextoolModuleManager::getInstance();
+   $manager->clearCache();
+   PluginNextoolLicenseConfig::resetCache();
 
    $result = PluginNextoolLicenseValidator::validateLicense([
       'force_refresh' => true,

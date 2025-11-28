@@ -9,7 +9,7 @@ if (!defined('GLPI_ROOT')) {
 
 class PluginNextoolConfig extends CommonDBTM {
 
-   const DEFAULT_CONTAINERAPI_BASE_URL = 'https://containerapi.ritech.site';
+   const DEFAULT_CONTAINERAPI_BASE_URL = 'https://containerapi.nextoolsolutions.ai/';
 
    static $rightname = 'config';
 

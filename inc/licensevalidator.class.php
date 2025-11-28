@@ -315,16 +315,16 @@ class PluginNextoolLicenseValidator {
       $licensesSnapshot = [];
 
       if ($responseData === null) {
-        if ($httpCode === 404) {
+         if ($httpCode === 404) {
             $message = __('Serviço de licença legado não encontrado (HTTP 404). Ambiente permanece em modo FREE.', 'nextool');
-        } elseif ($httpCode !== null) {
+         } elseif ($httpCode !== null) {
             $message = sprintf(
                __('Falha ao comunicar com o servidor de licenças (HTTP %d).', 'nextool'),
                $httpCode
             );
-        } else {
+         } else {
             $message = __('Falha ao comunicar com o servidor de licenças.', 'nextool');
-        }
+         }
 
          $recordAttempt([
             'result'           => false,
@@ -335,6 +335,9 @@ class PluginNextoolLicenseValidator {
             'license_status'   => null,
             'allowed_modules'  => json_encode([]),
          ]);
+         $plan = 'FREE';
+         $licenseStatus = 'FREE_TIER';
+         $contractActive = false;
       } else {
          // Campos adicionais da nova fase 3 (podem ou não estar presentes conforme versão do administrativo)
          if (array_key_exists('contract_active', $responseData)) {
@@ -423,6 +426,21 @@ class PluginNextoolLicenseValidator {
             if ($origin !== 'config_status') {
                self::applyModulesCatalogSync($responseData['modules_catalog']);
             }
+         }
+      }
+
+      if (!$valid) {
+         $allowedModules = [];
+         if (empty($plan)) {
+            $plan = 'FREE';
+         } else {
+            $plan = strtoupper($plan);
+         }
+         if ($licenseStatus === null) {
+            $licenseStatus = 'FREE_TIER';
+         }
+         if ($contractActive === null) {
+            $contractActive = false;
          }
       }
 

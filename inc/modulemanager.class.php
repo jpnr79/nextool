@@ -56,31 +56,19 @@ class PluginNextoolModuleManager {
    /** @var array<string, string[]> Mapeamento de tabelas utilizadas por cada módulo */
    private $moduleDataTables = [
       'helloworld' => [
-         'glpi_plugin_nextool_main_helloworld',
+         'glpi_plugin_nextool_helloworld_*',
       ],
       'aiassist' => [
-         'glpi_plugin_nextool_main_aiassist_config',
-         'glpi_plugin_nextool_main_aiassist_ticketdata',
-         'glpi_plugin_nextool_main_aiassist_requests',
-         'glpi_plugin_nextool_main_aiassist_quota',
-         'glpi_plugin_nextool_main_aiassist_config_history',
+         'glpi_plugin_nextool_aiassist_*',
       ],
       'autentique' => [
-         'glpi_plugin_nextool_main_docassign_configs',
-         'glpi_plugin_nextool_main_docassign_docs',
-         'glpi_plugin_nextool_main_docassign_signers',
+         'glpi_plugin_nextool_autentique_*',
       ],
       'mailinteractions' => [
-         'glpi_plugin_nextool_main_mailinteractions_tokens',
-         'glpi_plugin_nextool_main_mailinteractions_configs',
-         'glpi_plugin_nextool_main_mailinteractions_configs_logs',
-         'glpi_plugin_nextool_main_mailinteractions_approvals',
-         'glpi_plugin_nextool_main_mailinteractions_validations',
-         'glpi_plugin_nextool_main_mailinteractions_satisfaction',
+         'glpi_plugin_nextool_mailinteractions_*',
       ],
       'smartassign' => [
-         'glpi_plugin_nextool_main_smartassign_assignments',
-         'glpi_plugin_nextool_main_smartassign_options',
+         'glpi_plugin_nextool_smartassign_*',
       ],
    ];
 
@@ -336,7 +324,7 @@ class PluginNextoolModuleManager {
                'billing_tier'       => $this->getBillingTier($moduleKey),
                'is_installed'       => 1,
                // Não alteramos is_enabled aqui; ativação é responsabilidade do enableModule()
-               'is_available' => isset($row['is_available']) ? $row['is_available'] : 1,
+               'is_available' => isset($row['is_available']) ? $row['is_available'] : 0,
                'config'       => json_encode($module->getDefaultConfig()),
                'date_mod'     => date('Y-m-d H:i:s'),
             ],
@@ -353,7 +341,7 @@ class PluginNextoolModuleManager {
                'is_installed'  => 1,
                'billing_tier'  => $this->getBillingTier($moduleKey),
                'is_enabled'    => 0,
-               'is_available'  => 1,
+               'is_available'  => 0,
                'config'        => json_encode($module->getDefaultConfig()),
                'date_creation' => date('Y-m-d H:i:s')
             ]
@@ -813,7 +801,7 @@ class PluginNextoolModuleManager {
       global $DB;
 
       foreach ($this->getModuleDataTables($moduleKey) as $table) {
-         if ($DB->tableExists($table)) {
+         if ($this->tableMatches($table)) {
             return true;
          }
       }
@@ -868,14 +856,45 @@ class PluginNextoolModuleManager {
 
       $droppedAny = false;
 
-      foreach ($tables as $table) {
-         if ($DB->tableExists($table)) {
-            $DB->runQuery("DROP TABLE IF EXISTS `$table`");
+      foreach ($tables as $tablePattern) {
+         $matchedTables = $this->resolveTablePattern($tablePattern);
+         foreach ($matchedTables as $table) {
+            $DB->query("DROP TABLE IF EXISTS `$table`");
             $droppedAny = true;
          }
       }
 
       return $droppedAny;
+   }
+
+   private function tableMatches(string $pattern): bool {
+      global $DB;
+
+      if (strpos($pattern, '*') === false) {
+         return $DB->tableExists($pattern);
+      }
+
+      return !empty($this->resolveTablePattern($pattern));
+   }
+
+   private function resolveTablePattern(string $pattern): array {
+      global $DB;
+
+      if (strpos($pattern, '*') === false) {
+         return $DB->tableExists($pattern) ? [$pattern] : [];
+      }
+
+      $like = str_replace('*', '%', $pattern);
+      $tables = [];
+      $query = "SHOW TABLES LIKE " . $DB->quoteValue($like);
+      $result = $DB->query($query);
+      if ($result) {
+         while ($row = $DB->fetchArray($result)) {
+            $tables[] = array_values($row)[0];
+         }
+      }
+
+      return $tables;
    }
 
    /**

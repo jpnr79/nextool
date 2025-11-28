@@ -19,6 +19,7 @@ class PluginNextoolModuleCardHelper {
             'ti ti-file-text',
             "nextoolValidateLicense(this);"
          );
+         self::appendDataButtons($state, $html);
          return implode('', $html);
       }
 
@@ -31,11 +32,13 @@ class PluginNextoolModuleCardHelper {
                'ti ti-shopping-cart',
                $state['upgrade_url']
             );
+            self::appendDataButtons($state, $html);
             return implode('', $html);
          }
 
          if ($catalogDisabled) {
             $html[] = self::renderBadge(__('Download indisponível (catálogo desativado)', 'nextool'));
+            self::appendDataButtons($state, $html);
             return implode('', $html);
          }
 
@@ -50,6 +53,7 @@ class PluginNextoolModuleCardHelper {
                ? __('Configure o ContainerAPI para liberar o download.', 'nextool')
                : null
          );
+         self::appendDataButtons($state, $html);
          return implode('', $html);
       }
 
@@ -61,6 +65,7 @@ class PluginNextoolModuleCardHelper {
                'ti ti-shopping-cart',
                $state['upgrade_url']
             );
+            self::appendDataButtons($state, $html);
             return implode('', $html);
          }
 
@@ -121,7 +126,22 @@ class PluginNextoolModuleCardHelper {
          }
       }
 
-      if (!$state['is_installed'] && $state['has_module_data']) {
+      self::appendDataButtons($state, $html);
+
+      if ($state['show_config_button']) {
+         $html[] = self::renderLink(
+            __('Configurações', 'nextool'),
+            'btn btn-sm btn-primary',
+            'ti ti-settings',
+            $state['config_url']
+         );
+      }
+
+      return implode('', $html);
+   }
+
+   private static function appendDataButtons(array $state, array &$html): void {
+      if (!$state['is_installed'] && !empty($state['has_module_data'])) {
          $html[] = self::renderActionForm(
             $state,
             'purge_data',
@@ -140,17 +160,6 @@ class PluginNextoolModuleCardHelper {
             true
          );
       }
-
-      if ($state['show_config_button']) {
-         $html[] = self::renderLink(
-            __('Configurações', 'nextool'),
-            'btn btn-sm btn-primary',
-            'ti ti-settings',
-            $state['config_url']
-         );
-      }
-
-      return implode('', $html);
    }
 
    private static function renderPlainButton(string $label, string $classes, string $icon, string $onclick): string {

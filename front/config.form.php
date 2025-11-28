@@ -190,6 +190,15 @@ if ($DB->tableExists('glpi_plugin_nextool_main_modules')) {
    }
 }
 
+$modulesUnlocked = false;
+foreach ($dbModules as $row) {
+   if ((int)($row['is_available'] ?? 0) === 1) {
+      $modulesUnlocked = true;
+      break;
+   }
+}
+$requiresPolicyAcceptance = !$modulesUnlocked;
+
 $modulesState = [];
 $stats = [
    'total'     => 0,
@@ -211,11 +220,13 @@ foreach ($allModuleKeys as $moduleKey) {
       continue;
    }
 
-   $catalogIsEnabled = $dbRow === null ? true : ((int) ($dbRow['is_available'] ?? 1) === 1);
-   if ($dbRow !== null && !$catalogIsEnabled) {
+   $catalogIsEnabled = ($dbRow !== null) && ((int) ($dbRow['is_available'] ?? 0) === 1);
+   if (!$catalogIsEnabled) {
       // Não exibe módulos desativados no catálogo remoto.
       continue;
    }
+
+   $stats['total']++;
 
    $moduleInstance = $loadedModules[$moduleKey] ?? null;
    $isInstalled = (bool) ($dbRow['is_installed'] ?? 0);
@@ -236,8 +247,6 @@ foreach ($allModuleKeys as $moduleKey) {
          $stats['enabled']++;
       }
    }
-   $stats['total']++;
-
    if (!$hasValidatedPlan) {
       $isAllowedByPlan = false;
    } elseif ($hasWildcardAll) {
@@ -437,7 +446,28 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                      </h4>
                   </div>
                   <div class="card-body">
-                     <?php if (empty($modulesState)): ?>
+                     <?php if ($requiresPolicyAcceptance): ?>
+                        <div class="alert alert-info mb-0">
+                           <i class="ti ti-info-circle me-2"></i>
+                           Para visualizar e instalar os módulos oficiais da NexTool Solutions, é necessário aceitar as <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md" target="_blank" class="text-decoration-underline">Políticas de Uso</a> e sincronizar o catálogo com o ContainerAPI.
+                           <form method="post"
+                                 class="mt-3 d-flex flex-column flex-sm-row gap-2 align-items-start"
+                                 action="<?php echo Plugin::getWebDir('nextool') . '/front/config.save.php'; ?>">
+                              <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
+                              <?php echo Html::hidden('action', ['value' => 'accept_policies']); ?>
+                              <?php echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']); ?>
+                              <button type="submit" class="btn btn-primary">
+                                 <i class="ti ti-checkbox me-1"></i>
+                                 Aceitar políticas e liberar módulos
+                              </button>
+                              <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md"
+                                 target="_blank"
+                                 class="btn btn-link px-0 text-decoration-underline">
+                                 Revisar políticas de uso
+                              </a>
+                           </form>
+                        </div>
+                     <?php elseif (empty($modulesState)): ?>
                         <div class="alert alert-info mb-0">
                            <i class="ti ti-info-circle me-2"></i>
                            Nenhum módulo encontrado. Crie seu primeiro módulo em <code>inc/modules/[nome]/</code>

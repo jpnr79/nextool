@@ -30,7 +30,7 @@ class PluginNextoolModuleCatalog {
       'autentique' => [
          'name'        => 'Autentique',
          'description' => 'Envio de documentos para assinatura digital dentro do fluxo de tickets.',
-         'version'     => '1.8.3',
+         'version'     => '1.9.0',
          'icon'        => 'ti ti-signature',
          'billing_tier'=> 'PAID',
          'has_config'  => true,

@@ -6,17 +6,13 @@
 -- Tabela de configuração global do plugin
 CREATE TABLE IF NOT EXISTS `glpi_plugin_nextool_main_configs` (
    `id` int unsigned NOT NULL AUTO_INCREMENT,
-   `is_active` tinyint NOT NULL DEFAULT '0' COMMENT 'Plugin ativo (0=não, 1=sim)',
+   `is_active` tinyint NOT NULL DEFAULT '1' COMMENT 'Plugin ativo (0=não, 1=sim)',
    `client_identifier` varchar(128) DEFAULT NULL,
    `endpoint_url` varchar(255) DEFAULT NULL,
    `date_creation` timestamp NULL DEFAULT NULL,
    `date_mod` timestamp NULL DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
-
--- Insere registro inicial com plugin desativado
-INSERT INTO `glpi_plugin_nextool_main_configs` (`id`, `is_active`, `date_creation`) 
-VALUES (1, 0, NOW());
 
 -- Tabela de módulos (v2.0.0+)
 -- Esta tabela armazena o registro e configuração de cada módulo
@@ -29,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_nextool_main_modules` (
    `is_installed` tinyint NOT NULL DEFAULT '0' COMMENT 'Módulo instalado (0=não, 1=sim)',
    `billing_tier` varchar(16) DEFAULT 'FREE' COMMENT 'Modelo de cobrança (FREE/PAID/...)',
    `is_enabled` tinyint NOT NULL DEFAULT '0' COMMENT 'Módulo ativo (0=não, 1=sim)',
-   `is_available` tinyint NOT NULL DEFAULT '1' COMMENT 'Disponível na lista de módulos (0=oculto, 1=visível)',
+   `is_available` tinyint NOT NULL DEFAULT '0' COMMENT 'Disponível na lista de módulos (0=oculto, 1=visível)',
    `config` text DEFAULT NULL COMMENT 'Configuração específica do módulo (JSON)',
    `date_creation` timestamp NULL DEFAULT NULL,
    `date_mod` timestamp NULL DEFAULT NULL,

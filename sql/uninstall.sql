@@ -17,4 +17,3 @@ DROP TABLE IF EXISTS `glpi_plugin_nextool_main_modules`;
 
 -- Remove tabela de configuração global
 DROP TABLE IF EXISTS `glpi_plugin_nextool_main_configs`;
-

@@ -72,6 +72,52 @@ class PluginNextoolLicenseConfig extends CommonDBTM {
    }
 
    /**
+    * Limpa o cache da licença (planos, status, módulos permitidos etc.).
+    *
+    * @param array $overrides Valores adicionais para sobrescrever após o reset.
+    */
+   public static function resetCache(array $overrides = []): void {
+      global $DB;
+
+      self::ensureSchema();
+
+      $table = self::getTable();
+      if (!$DB->tableExists($table)) {
+         return;
+      }
+
+      $defaults = [
+         'plan'                   => null,
+         'contract_active'        => null,
+         'license_status'         => null,
+         'expires_at'             => null,
+         'last_validation_date'   => null,
+         'last_validation_result' => null,
+         'last_validation_message'=> null,
+         'cached_modules'         => null,
+         'warnings'               => null,
+         'licenses_snapshot'      => null,
+         'consecutive_failures'   => 0,
+         'last_failure_date'      => null,
+      ];
+
+      $payload = array_merge($defaults, $overrides);
+      $payload['date_mod'] = date('Y-m-d H:i:s');
+
+      $existing = self::getDefaultConfig();
+      if (!empty($existing['id'])) {
+         $DB->update(
+            $table,
+            $payload,
+            ['id' => (int)$existing['id']]
+         );
+      } else {
+         $payload['date_creation'] = date('Y-m-d H:i:s');
+         $DB->insert($table, $payload);
+      }
+   }
+
+   /**
     * Garante que a tabela possua os campos mais recentes usados pelo snapshot de licença.
     *
     * Executa migrações em runtime caso o administrador tenha atualizado o plugin
