@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin NexTool Solutions v2.18.4 - Sistema Modular para GLPI 11
+ * Plugin NexTool Solutions v2.19.0 - Sistema Modular para GLPI 11
  * 
  * Plugin multiferramentas com arquitetura modular completa.
  * Cada ferramenta é um módulo independente que pode ser ativado/desativado.
@@ -12,10 +12,10 @@
  * 
  * Documentação completa em: docs/
  * 
- * @version 2.18.4
+ * @version 2.19.0
  * @author Richard Loureiro - linkedin.com/in/richard-ti
  * @license GPLv3+
- * @link https://ritech.site
+ * @link https://linkedin.com/in/richard-ti
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -25,7 +25,7 @@ if (!defined('GLPI_ROOT')) {
 function plugin_version_nextool() {
    return [
       'name'           => 'NexTool Solutions',
-      'version'        => '2.18.4',
+      'version'        => '2.19.0',
       'license'        => 'GPLv3+',
       'author'         => 'Richard Loureiro - linkedin.com/in/richard-ti',
       'homepage'       => 'https://ritech.site',
@@ -37,8 +37,12 @@ function plugin_version_nextool() {
  * Inicialização do plugin
  */
 function plugin_init_nextool() {
-   error_log("Nextool: plugin carregado!");
    global $PLUGIN_HOOKS;
+
+   $permissionfile = GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+   if (file_exists($permissionfile)) {
+      require_once $permissionfile;
+   }
 
    // Define a página de configuração do plugin (adiciona botão "Configurar" na lista de plugins)
    $PLUGIN_HOOKS['config_page']['nextool'] = 'front/config.php';
@@ -69,6 +73,12 @@ function plugin_init_nextool() {
       ]);
    }
 
+   $profilefile = GLPI_ROOT . '/plugins/nextool/inc/profile.class.php';
+   if (file_exists($profilefile)) {
+      require_once $profilefile;
+      Plugin::registerClass('PluginNextoolProfile', ['addtabon' => ['Profile']]);
+   }
+
    // Carrega ModuleManager e inicializa módulos ativos
    // Verifica se tabela de módulos existe (plugin já instalado)
    $managerfile = GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
@@ -85,6 +95,7 @@ function plugin_init_nextool() {
             
             $manager = PluginNextoolModuleManager::getInstance();
             $manager->loadActiveModules();
+            PluginNextoolPermissionManager::syncModuleRights();
             
          } catch (Exception $e) {
             Toolbox::logInFile('plugin_nextool', "Erro ao carregar módulos: " . $e->getMessage());

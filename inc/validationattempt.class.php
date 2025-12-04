@@ -1,13 +1,23 @@
 <?php
 /**
- * Classe de tentativas de validação de licença do Nextool (operacional)
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - License Validation Attempts
+ * -------------------------------------------------------------------------
+ * Classe de tentativas de validação de licença do NexTool Solutions
+ * (camada operacional).
  *
- * Armazena histórico de chamadas à API do administrativo (ritecadmin):
+ * Armazena histórico das chamadas à API administrativa (via ContainerAPI):
  * - data/hora
  * - resultado
  * - mensagem
  * - código HTTP
  * - tempo de resposta
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

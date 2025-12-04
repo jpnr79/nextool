@@ -52,6 +52,9 @@ if (!function_exists('plugin_nextool_aiassist_render_summary_html')) {
 
       // Normaliza quebras de linha
       $text = str_replace(["\r\n", "\r"], "\n", $text);
+      
+      // Remove TODAS quebras múltiplas - mantém apenas 1
+      $text = preg_replace('/\n+/', "\n", $text);
 
       // Escapa HTML para evitar XSS
       $safe = Html::entities_deep($text);
@@ -59,8 +62,20 @@ if (!function_exists('plugin_nextool_aiassist_render_summary_html')) {
       // Converte **texto** em <strong>texto</strong>
       $safe = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $safe);
 
+      // Adiciona quebra dupla antes de cada tópico 2-9 para espaçamento
+      $safe = preg_replace('/\n(\d+\.\s+<strong>)/', "\n\n$1", $safe);
+      
+      // Remove quebras no início
+      $safe = ltrim($safe, "\n");
+
       // Converte quebras de linha em <br>
-      $safe = nl2br($safe);
+      $safe = nl2br($safe, false);
+      
+      // LIMPEZA FINAL: Remove <br> duplicados (mantém no máximo 2 consecutivos)
+      $safe = preg_replace('/(<br>\s*){3,}/', '<br><br>', $safe);
+      
+      // Remove TODOS os \n literais restantes (o <pre> com white-space:pre-wrap os preserva)
+      $safe = str_replace("\n", '', $safe);
 
       return $safe;
    }
@@ -127,7 +142,7 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
 
       <div id="aiassist-summary-result" class="aiassist-result aiassist-summary-result">
          <?php if ($summaryDisplayHtml !== ''): ?>
-            <pre class="aiassist-summary-result__content"><?php echo $summaryDisplayHtml; ?></pre>
+            <div class="aiassist-summary-result__content"><?php echo $summaryDisplayHtml; ?></div>
          <?php else: ?>
             <div class="aiassist-summary-result__empty">
                <i class="ti ti-notebook"></i>
@@ -187,7 +202,7 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
       </header>
 
       <p class="aiassist-panel__intro">
-         <?php echo __('A análise considera exclusivamente o título e a descrição inicial registrados na abertura do chamado.', 'nextool'); ?>
+         <?php echo __('A análise considera o título, a descrição inicial e as últimas interações do solicitante para identificar a evolução do sentimento.', 'nextool'); ?>
       </p>
 
       <div id="aiassist-result" class="aiassist-result">
@@ -221,21 +236,6 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
                <small><?php echo __('Solicite uma análise para visualizar sentimento e urgência.', 'nextool'); ?></small>
             </div>
          <?php endif; ?>
-      </div>
-
-      <div class="aiassist-context">
-         <div class="aiassist-context__block">
-            <label><?php echo __('Título do chamado', 'nextool'); ?></label>
-            <p><?php echo $ticketTitle !== '' ? Html::entities_deep($ticketTitle) : __('Não informado', 'nextool'); ?></p>
-         </div>
-         <div class="aiassist-context__block">
-            <label><?php echo __('Descrição inicial', 'nextool'); ?></label>
-            <?php if ($descriptionDisplay !== ''): ?>
-               <div class="aiassist-context__description"><?php echo $descriptionDisplay; ?></div>
-            <?php else: ?>
-               <p class="aiassist-context__placeholder"><?php echo __('Nenhuma descrição registrada.', 'nextool'); ?></p>
-            <?php endif; ?>
-         </div>
       </div>
 
       <?php if ($sentimentEnabled): ?>
@@ -381,12 +381,12 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
 }
 
 .aiassist-summary-result__content {
-   white-space: pre-wrap;
    word-break: break-word;
    font-family: inherit;
    font-size: 0.95rem;
    color: var(--aiassist-text-muted);
    margin: 0;
+   line-height: 1.6;
 }
 
 .aiassist-result__rationale {
@@ -622,9 +622,14 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
       params.append('tickets_id', ticketId);
       params.append('action', action);
 
-      var isSentiment = action === 'sentiment';
-      var button = isSentiment ? sentimentButton : summaryButton;
-      var feedback = isSentiment ? sentimentFeedback : summaryFeedback;
+      var button, feedback;
+      if (action === 'sentiment') {
+         button = sentimentButton;
+         feedback = sentimentFeedback;
+      } else if (action === 'summary') {
+         button = summaryButton;
+         feedback = summaryFeedback;
+      }
 
       setLoadingState(button, true);
 
@@ -657,9 +662,18 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
          }
 
          if (!result.ok || !payload || !payload.success) {
-            var msg = (payload && payload.message)
-               ? payload.message
-               : (isSentiment ? messages.sentiment.genericError : messages.summary.genericError);
+            var msg;
+            if (action === 'sentiment') {
+               msg = messages.sentiment.genericError;
+            } else if (action === 'summary') {
+               msg = messages.summary.genericError;
+            } else {
+               msg = __('Erro ao processar a solicitação.', 'nextool');
+            }
+            if (payload && payload.message) {
+               msg = payload.message;
+            }
+
             showFeedback(feedback, 'error', msg);
             if (payload && payload.block_reason && button) {
                button.setAttribute('data-disabled-message', payload.block_reason);
@@ -667,22 +681,27 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
             return;
          }
 
-         if (isSentiment) {
+         if (action === 'sentiment') {
             updateSentimentResult(payload.data || {});
             showFeedback(feedback, 'success', payload.message || messages.sentiment.success);
-            if (button) {
-               button.removeAttribute('data-disabled-message');
-            }
-         } else {
+         } else if (action === 'summary') {
             updateSummaryResult(payload.data || {});
             showFeedback(feedback, 'success', payload.message || messages.summary.success);
-            if (button) {
-               button.removeAttribute('data-disabled-message');
-            }
+         }
+
+         if (button) {
+            button.removeAttribute('data-disabled-message');
          }
       })
       .catch(function() {
-         var msg = isSentiment ? messages.sentiment.unexpectedError : messages.summary.unexpectedError;
+         var msg;
+         if (action === 'sentiment') {
+            msg = messages.sentiment.unexpectedError;
+         } else if (action === 'summary') {
+            msg = messages.summary.unexpectedError;
+         } else {
+            msg = messages.processing;
+         }
          showFeedback(feedback, 'error', msg);
       })
       .finally(function() {
@@ -695,7 +714,7 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
          return;
       }
 
-      if (!data || !data.summary_text) {
+      if (!data || (!data.summary_html && !data.summary_text)) {
          summaryResult.innerHTML =
             '<div class="aiassist-summary-result__empty">' +
                '<i class="ti ti-notebook"></i>' +
@@ -705,13 +724,14 @@ $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel)
          return;
       }
 
-      var raw = data.summary_text || '';
-      var safe = escapeHtml(raw);
-      // Quebras de linha simples
-      safe = safe.replace(/\n/g, '<br>');
-      // Remove marcadores ** de markdown para evitar problemas de regex na renderização
-      safe = safe.split('**').join('');
-      summaryResult.innerHTML = '<pre class="aiassist-summary-result__content">' + safe + '</pre>';
+      // Priorizar HTML pronto do backend
+      var htmlContent = data.summary_html || '';
+      if (!htmlContent && data.summary_text) {
+         // Fallback: escapa e converte quebras (sem processar markdown)
+         htmlContent = escapeHtml(data.summary_text).replace(/\n/g, '<br>');
+      }
+
+      summaryResult.innerHTML = '<div class="aiassist-summary-result__content">' + htmlContent + '</div>';
 
       var status = document.getElementById('aiassist-summary-status');
       if (status && data.updated_at) {

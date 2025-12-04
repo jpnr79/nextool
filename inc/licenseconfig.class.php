@@ -1,13 +1,22 @@
 <?php
 /**
- * Classe de configuração de licença do Nextool (operacional)
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - License Configuration
+ * -------------------------------------------------------------------------
+ * Classe de configuração de licença do NexTool Solutions (operacional).
  *
  * Responsável por armazenar:
- * - chave da licença configurada
- * - endpoint do administrativo (ritecadmin)
+ * - chave da licença configurada / client_identifier
+ * - endpoint do ContainerAPI (via ritecadmin)
  * - secret da API
  * - status da última validação
  * - cache de módulos e tolerância
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

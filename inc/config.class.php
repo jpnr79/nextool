@@ -1,6 +1,17 @@
 <?php
 /**
- * Classe para gerenciar configurações do plugin
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Plugin Configuration
+ * -------------------------------------------------------------------------
+ * Classe responsável por gerenciar as configurações globais do plugin
+ * NexTool Solutions dentro do GLPI (identificador, distribuição remota,
+ * integrações com ContainerAPI, etc.).
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

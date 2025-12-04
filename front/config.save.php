@@ -17,6 +17,18 @@ require_once GLPI_ROOT . '/plugins/nextool/inc/licensevalidator.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/configaudit.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/distributionclient.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+
+// Verificação de permissão depende da ação
+$action = $_POST['action'] ?? '';
+
+// Ação "validate_license" requer apenas READ (visualizar/consultar)
+if ($action === 'validate_license') {
+   PluginNextoolPermissionManager::assertCanAccessAdminTabs();
+} else {
+   // Outras ações requerem UPDATE (modificar)
+   PluginNextoolPermissionManager::assertCanManageAdminTabs();
+}
 
 if (!function_exists('nextool_obtain_or_reuse_client_secret')) {
    function nextool_obtain_or_reuse_client_secret(string $baseUrl, string $clientIdentifier, ?bool &$reused = null): ?string {

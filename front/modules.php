@@ -1,19 +1,24 @@
 <?php
 /**
- * Roteador central para módulos do Nextool
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Front Router
+ * -------------------------------------------------------------------------
+ * Roteador central para módulos do NexTool Solutions.
  * 
- * Este arquivo roteia requisições para arquivos front-end dos módulos.
- * Soluciona o problema de roteamento do Symfony no GLPI 11 que intercepta
- * URLs diretas para arquivos dentro de modules/[nome]/front/
+ * Este arquivo roteia requisições para arquivos front-end dos módulos e
+ * soluciona o problema de roteamento do Symfony no GLPI 11, que intercepta
+ * URLs diretas para arquivos dentro de modules/[nome]/front/.
  * 
  * Uso: 
  * - PHP: /plugins/nextool/front/modules.php?module=helloworld&file=helloworld.php
  * - CSS: /plugins/nextool/front/modules.php?module=pendingsurvey&file=pendingsurvey.css.php
  * - JS:  /plugins/nextool/front/modules.php?module=pendingsurvey&file=pendingsurvey.js.php
- * 
- * @author Richard Loureiro
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
  * @copyright 2025 Richard Loureiro
- * @license GPLv3+
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 // Define GLPI_ROOT PRIMEIRO (necessário para caminhos)

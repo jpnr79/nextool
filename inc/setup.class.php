@@ -1,9 +1,16 @@
 <?php
 /**
- * Classe de setup - Adiciona tab em "Configurar → Geral"
- * 
- * Copyright (C) 2025 Richard Loureiro
- * Licensed under GPLv3+
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Setup Class
+ * -------------------------------------------------------------------------
+ * Classe de setup responsável por adicionar a aba do NexTool Solutions em
+ * "Configurar → Geral" e integrar o formulário principal de configuração.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

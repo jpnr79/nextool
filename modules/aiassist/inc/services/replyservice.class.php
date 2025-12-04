@@ -55,6 +55,30 @@ class PluginNextoolAiassistReplyService {
          ];
       }
 
+      // Verificar se deve usar cache (a menos que force=true)
+      $force = !empty($options['force']);
+      
+      if (!$force) {
+         $ticketData = $this->module->getTicketData($ticketId);
+         $cachedReply = trim((string)($ticketData['reply_text'] ?? ''));
+         $lastReplyFollowupId = (int)($ticketData['last_reply_followup_id'] ?? 0);
+         $currentLastFollowupId = (int)($context['last_followup_id'] ?? 0);
+         
+         // Se já tem cache E não há novo followup, retornar cache
+         if ($cachedReply !== '' && $lastReplyFollowupId === $currentLastFollowupId) {
+            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+               '[REPLY] Retornando sugestão em cache (sem novos followups) - Ticket #%d',
+               $ticketId
+            ));
+            return [
+               'success' => true,
+               'content' => $cachedReply,
+               'from_cache' => true,
+               'cached_at' => $ticketData['last_reply_at'] ?? null
+            ];
+         }
+      }
+
       $estimatedTokens = $this->module->estimateTokensFromText($context['text']);
       if (!$this->module->hasTokensAvailable($estimatedTokens)) {
          return [
@@ -63,16 +87,20 @@ class PluginNextoolAiassistReplyService {
          ];
       }
 
+      // Obtém nome do analista para assinatura dinâmica
+      $analystName = $this->module->getUserDisplayName($userId);
+      
       $tone = $options['tone'] ?? __('profissional e cordial', 'nextool');
       $instructions = sprintf(
-         "Com base no histórico abaixo, redija uma resposta %s para o solicitante, informando status atual e próximos passos. Inclua saudação inicial e encerramento curto.",
-         $tone
+         "Com base no histórico abaixo, redija uma resposta %s para o solicitante, informando status atual e próximos passos. Inclua saudação inicial e FINALIZE com:\n\nAtenciosamente,\n%s",
+         $tone,
+         $analystName
       );
 
       $response = $this->provider->chat([
          [
             'role' => 'system',
-            'content' => 'Você é um analista de suporte do GLPI. Responda em português do Brasil e mantenha tom empático e claro.'
+            'content' => 'Responda em português do Brasil e mantenha tom empático e claro.'
          ],
          [
             'role' => 'user',
@@ -109,4 +137,3 @@ class PluginNextoolAiassistReplyService {
       return $response;
    }
 }
-

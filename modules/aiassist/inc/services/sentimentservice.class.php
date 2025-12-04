@@ -1,6 +1,11 @@
 <?php
 /**
  * Serviço responsável por analisar sentimento e urgência.
+ *
+ * Versão aprimorada:
+ * - Considera título, descrição inicial E histórico recente do solicitante;
+ * - Usa escala de 0 a 10 para o score (0 = extremamente negativo, 10 = extremamente positivo);
+ * - Foca na evolução do humor ao longo das últimas interações.
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -21,7 +26,7 @@ class PluginNextoolAiassistSentimentService {
    }
 
    /**
-    * Executa análise de sentimento/urgência.
+    * Executa análise de sentimento/urgência considerando abertura e histórico recente.
     *
     * @param int $ticketId
     * @param int $userId
@@ -30,7 +35,7 @@ class PluginNextoolAiassistSentimentService {
     */
    public function analyze($ticketId, $userId = 0, array $options = []) {
       Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
-         '[SENTIMENT] Iniciando análise - Ticket #%d, User #%d',
+         '[SENTIMENT] Iniciando análise aprimorada - Ticket #%d, User #%d',
          $ticketId,
          $userId
       ));
@@ -44,18 +49,67 @@ class PluginNextoolAiassistSentimentService {
          ];
       }
 
+      // 1. Dados básicos (Título e Descrição)
       $title = trim((string)($ticket->fields['name'] ?? ''));
       $description = $this->normalizeTicketDescription($ticket->fields['content'] ?? '');
 
-      if ($title === '' && $description === '') {
+      // 2. Histórico recente do solicitante (últimas 5 interações públicas)
+      $requesterUpdates = [];
+      $requesterId = (int)($ticket->fields['users_id_recipient'] ?? 0);
+
+      if ($requesterId > 0) {
+         global $DB;
+         $iterator = $DB->request([
+            'FROM'   => 'glpi_itilfollowups',
+            'WHERE'  => [
+               'items_id'   => $ticketId,
+               'itemtype'   => 'Ticket',
+               'is_private' => 0,
+               'users_id'   => $requesterId
+            ],
+            'ORDER'  => 'date DESC',
+            'LIMIT'  => 5
+         ]);
+
+         foreach ($iterator as $row) {
+            $cleanContent = $this->normalizeTicketDescription($row['content']);
+            if ($cleanContent !== '') {
+               $requesterUpdates[] = sprintf("[%s] %s", $row['date'], $cleanContent);
+            }
+         }
+
+         // Ordem cronológica para a IA entender evolução (do mais antigo para o mais recente)
+         $requesterUpdates = array_reverse($requesterUpdates);
+      }
+
+      // Validação mínima de conteúdo
+      if ($title === '' && $description === '' && empty($requesterUpdates)) {
          return [
             'success' => false,
-            'message' => __('Sem conteúdo na abertura do chamado para analisar.', 'nextool'),
+            'message' => __('Sem conteúdo suficiente (título, descrição ou interações) para analisar.', 'nextool'),
          ];
       }
 
+      // 3. Construção do payload com priorização de histórico
       $maxChars = (int)($this->module->getSettings()['payload_max_chars'] ?? 6000);
       $maxChars = max(1000, $maxChars);
+
+      $historyText = '';
+      if (!empty($requesterUpdates)) {
+         $historyText = "Histórico recente do solicitante (considere a evolução do sentimento aqui):\n" . implode("\n---\n", $requesterUpdates);
+      }
+
+      // Priorizamos: Título > Histórico recente > Descrição inicial
+      $reservedChars = mb_strlen($title) + mb_strlen($historyText) + 200;
+      $availableForDesc = $maxChars - $reservedChars;
+
+      if ($availableForDesc < 500) {
+         $availableForDesc = 500;
+      }
+
+      if (mb_strlen($description) > $availableForDesc) {
+         $description = mb_substr($description, 0, $availableForDesc) . '... [truncado]';
+      }
 
       $payloadParts = [];
       if ($title !== '') {
@@ -64,12 +118,18 @@ class PluginNextoolAiassistSentimentService {
       if ($description !== '') {
          $payloadParts[] = "Descrição inicial:\n" . $description;
       }
+      if ($historyText !== '') {
+         $payloadParts[] = $historyText;
+      }
 
       $payloadText = implode("\n\n", $payloadParts);
+
+      // Corte de segurança
       if (mb_strlen($payloadText) > $maxChars) {
          $payloadText = mb_substr($payloadText, 0, $maxChars - 3) . '...';
       }
 
+      // Estimativa de tokens e verificação de quota
       $estimatedTokens = $this->module->estimateTokensFromText($payloadText);
       if (!$this->module->hasTokensAvailable($estimatedTokens)) {
          return [
@@ -78,20 +138,23 @@ class PluginNextoolAiassistSentimentService {
          ];
       }
 
+      // Prompt atualizado para escala 0–10 e foco na evolução do humor
       $instructions = <<<JSON
-Você analisará mensagens da abertura de um chamado de suporte. Classifique e responda apenas em JSON com o seguinte formato:
+Você analisará a abertura de um chamado de suporte e as interações recentes do solicitante.
+Avalie a evolução do humor. Se o usuário estava calmo e ficou irritado no final, considere o estado ATUAL (irritado).
+Classifique e responda apenas em JSON com o seguinte formato:
 {
   "sentiment_label": "Positivo|Neutro|Negativo|Crítico",
-  "sentiment_score": -1.0 a 1.0,
+  "sentiment_score": 0 a 10 (onde 0 é extremamente negativo e 10 extremamente positivo),
   "urgency_level": "Baixa|Média|Alta|Crítica",
-  "rationale": "resumo breve (máx 2 frases)"
+  "rationale": "resumo breve (máx 2 frases) justificando com base no contexto atual"
 }
 JSON;
 
       $response = $this->provider->chat([
          [
             'role' => 'system',
-            'content' => 'Você atua como analista de sentimento para tickets de suporte em português do Brasil.'
+            'content' => 'Analise o sentimento de tickets em português do Brasil.'
          ],
          [
             'role' => 'user',

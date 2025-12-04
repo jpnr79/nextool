@@ -13,15 +13,23 @@ Session::checkRight('config', READ);
 
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/basemodule.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/modules/aiassist/inc/aiassist.class.php';
+
+// Verifica permissão de visualização do módulo (READ mínimo)
+PluginNextoolPermissionManager::assertCanViewModule('aiassist');
 
 $module = new PluginNextoolAiassist();
 $settings = $module->getSettings();
 $quota = $module->getQuotaData();
 $isProxyMode = ($settings['provider_mode'] ?? PluginNextoolAiassist::PROVIDER_MODE_DIRECT) === PluginNextoolAiassist::PROVIDER_MODE_PROXY;
 
+// Verifica se pode editar configurações (UPDATE necessário)
+$canEdit = $module->canEditConfig();
+
 if (isset($_POST['save_aiassist_config']) || isset($_POST['reset_quota']) || isset($_POST['notify_test_result'])) {
-   Session::checkRight('config', UPDATE);
+   // Valida permissão de UPDATE antes de processar
+   PluginNextoolPermissionManager::assertCanManageModule('aiassist');
 
    if (isset($_POST['reset_quota'])) {
       $module->resetQuota();
@@ -77,7 +85,7 @@ $requestedSection = $_GET['section'] ?? 'features';
 $allowedSections = ['features', 'api', 'consumption', 'logs'];
 $activeSection = in_array($requestedSection, $allowedSections, true) ? $requestedSection : 'features';
 
-Html::header('RITEC Tools - AI Assist', $_SERVER['PHP_SELF'], 'config', 'plugins');
+Html::header('NexTool Solutions - AI Assist', $_SERVER['PHP_SELF'], 'config', 'plugins');
 
 $csrf = Session::getNewCSRFToken();
 $ajax_token = Session::getNewCSRFToken();
@@ -420,10 +428,16 @@ $tabs = [
                </div>
             </div>
             <div class="card-footer d-flex flex-wrap gap-2">
-               <button type="submit" name="save_aiassist_config" class="btn btn-primary">
+               <button type="submit" name="save_aiassist_config" class="btn btn-primary" <?php echo $canEdit ? '' : ' disabled'; ?>>
                   <i class="ti ti-device-floppy me-1"></i>
                   <?php echo __('Salvar configurações', 'nextool'); ?>
                </button>
+               <?php if (!$canEdit): ?>
+                  <div class="alert alert-info mb-0 ms-2 py-2">
+                     <i class="ti ti-info-circle me-2"></i>
+                     <?php echo __('Permissão de visualização: não é possível editar', 'nextool'); ?>
+                  </div>
+               <?php endif; ?>
                <a class="btn btn-secondary" href="<?php echo $CFG_GLPI['root_doc']; ?>/front/config.form.php?forcetab=PluginNextoolSetup$1">
                   <i class="ti ti-arrow-left me-1"></i>
                   <?php echo __('Voltar', 'nextool'); ?>
@@ -441,7 +455,7 @@ $tabs = [
                   </div>
                   <div>
                      <h3 class="mb-0"><?php echo __('Configuração da API IA', 'nextool'); ?></h3>
-                     <small class="text-muted"><?php echo __('Escolha entre chave própria ou proxy RITEC e ajuste os parâmetros técnicos.', 'nextool'); ?></small>
+                     <small class="text-muted"><?php echo __('Escolha entre chave própria ou proxy NexTool Solutions e ajuste os parâmetros técnicos.', 'nextool'); ?></small>
                   </div>
                </div>
             </div>
@@ -449,7 +463,7 @@ $tabs = [
 
                <div class="alert alert-info mb-4">
                   <i class="ti ti-bulb me-2"></i>
-                  <?php echo __('Alterne entre “Chave própria” (OpenAI direta) ou “Proxy RITEC” para centralizar consumo e quotas.', 'nextool'); ?>
+                  <?php echo __('Alterne entre “Chave própria” (OpenAI direta) ou “Proxy NexTool Solutions” para centralizar consumo e quotas.', 'nextool'); ?>
                </div>
 
                <!-- Campos globais removidos da tela do módulo por solicitação -->
@@ -464,7 +478,7 @@ $tabs = [
                   </label>
                   <input class="btn-check" type="radio" name="provider_mode" id="aiassist-mode-proxy" value="proxy" <?php echo $isProxyMode ? 'checked' : ''; ?>>
                   <label class="btn btn-outline-primary" for="aiassist-mode-proxy">
-                     <?php echo __('Proxy RITEC', 'nextool'); ?>
+                     <?php echo __('Proxy NexTool Solutions', 'nextool'); ?>
                   </label>
                </div>
 
@@ -475,7 +489,7 @@ $tabs = [
 
                <div class="alert alert-secondary aiassist-proxy-only" style="<?php echo $isProxyMode ? '' : 'display:none;'; ?>">
                   <i class="ti ti-network me-2"></i>
-                  <?php echo __('Com o proxy RITEC, o consumo passa por uma camada intermediária com quotas centralizadas e métricas compartilhadas.', 'nextool'); ?>
+                  <?php echo __('Com o proxy NexTool Solutions, o consumo passa por uma camada intermediária com quotas centralizadas e métricas compartilhadas.', 'nextool'); ?>
                </div>
 
                <div class="row g-3 mt-1 aiassist-direct-only" style="<?php echo $isProxyMode ? 'display:none;' : ''; ?>">
@@ -521,7 +535,7 @@ $tabs = [
                             value="<?php echo (int)max(1000, $quotaLimit ?: 100000); ?>"
                             readonly>
                      <small class="text-muted">
-                        <?php echo __('Valor definido e sincronizado pelo proxy RITEC. Não editável localmente.', 'nextool'); ?>
+                        <?php echo __('Valor definido e sincronizado pelo proxy NexTool Solutions. Não editável localmente.', 'nextool'); ?>
                      </small>
                      <input type="hidden" name="tokens_limit_month" value="<?php echo (int)max(1000, $quotaLimit ?: 100000); ?>">
                   </div>
@@ -558,7 +572,7 @@ $tabs = [
 
             </div>
             <div class="card-footer d-flex flex-wrap gap-2">
-               <button type="submit" name="save_aiassist_config" class="btn btn-primary">
+               <button type="submit" name="save_aiassist_config" class="btn btn-primary" <?php echo $canEdit ? '' : ' disabled'; ?>>
                   <i class="ti ti-device-floppy me-1"></i>
                   <?php echo __('Salvar configurações', 'nextool'); ?>
                </button>
@@ -608,6 +622,7 @@ $tabs = [
                            <button type="submit"
                                    name="reset_quota"
                                    class="btn btn-warning"
+                                   <?php echo $canEdit ? '' : ' disabled'; ?>
                                    onclick="return confirm('<?php echo __('Deseja realmente resetar o saldo de tokens?', 'nextool'); ?>');">
                               <i class="ti ti-rotate-clockwise-2 me-1"></i>
                               <?php echo __('Resetar saldo de tokens', 'nextool'); ?>

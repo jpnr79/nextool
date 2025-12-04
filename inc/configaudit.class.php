@@ -1,6 +1,17 @@
 <?php
 /**
- * Auditoria das alterações de configuração/licença do Nextool
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Config Audit
+ * -------------------------------------------------------------------------
+ * Auditoria das alterações de configuração/licença do NexTool Solutions,
+ * registrando seção, ação, resultado, usuário e detalhes em
+ * glpi_plugin_nextool_main_config_audit.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

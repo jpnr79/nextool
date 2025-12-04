@@ -3,11 +3,11 @@
  * Módulo AI Assist - Classe principal
  *
  * Responsável por gerenciar configurações, instalação e futuras
- * integrações de IA dentro do RITEC Tools.
+ * integrações de IA dentro do NexTool Solutions.
  *
- * @version 1.3.6-beta
+ * @version 1.4.1
  *
- * @author RITEC
+ * @author NexTool Solutions
  * @license GPLv3+
  */
 
@@ -69,7 +69,8 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
     * {@inheritdoc}
     */
    public function getVersion() {
-      return '1.3.6-beta';
+      // 1.4.3: Formatação de sugestão corrigida + testes automatizados + botão X modal
+      return '1.4.3';
    }
 
    /**
@@ -83,7 +84,7 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
     * {@inheritdoc}
     */
    public function getAuthor() {
-      return 'RITEC';
+      return 'NexTool Solutions';
    }
 
    public function getBillingTier() {
@@ -155,18 +156,21 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
          $PLUGIN_HOOKS['pre_item_form']['nextool']['Ticket'] = [self::class, 'preTicketForm'];
       }
       
-      // Hook para adicionar CSS customizado do botão
-      if (!isset($PLUGIN_HOOKS['add_css']['nextool'])) {
-         $PLUGIN_HOOKS['add_css']['nextool'] = [];
-      }
-      $PLUGIN_HOOKS['add_css']['nextool'][] = $this->getCssPath('aiassist-timeline-button.css.php');
+      // Hooks de CSS e JavaScript apenas para usuários com permissão READ
+      if (PluginNextoolPermissionManager::canViewModule('aiassist')) {
+         // Hook para adicionar CSS customizado do botão
+         if (!isset($PLUGIN_HOOKS['add_css']['nextool'])) {
+            $PLUGIN_HOOKS['add_css']['nextool'] = [];
+         }
+         $PLUGIN_HOOKS['add_css']['nextool'][] = $this->getCssPath('aiassist-timeline-button.css.php');
 
-      // Hook para adicionar JS global responsável por injetar o botão "Resumo (AI)" na timeline
-      if (!isset($PLUGIN_HOOKS['add_javascript']['nextool'])) {
-         $PLUGIN_HOOKS['add_javascript']['nextool'] = [];
+         // Hook para adicionar JS global responsável por injetar o botão "Resumo (AI)" na timeline
+         if (!isset($PLUGIN_HOOKS['add_javascript']['nextool'])) {
+            $PLUGIN_HOOKS['add_javascript']['nextool'] = [];
+         }
+         // Usa o roteador module_assets.php para servir o JS do módulo
+         $PLUGIN_HOOKS['add_javascript']['nextool'][] = 'front/module_assets.php?module=aiassist&file=aiassist-timeline-button.js.php';
       }
-      // Usa o roteador module_assets.php para servir o JS do módulo
-      $PLUGIN_HOOKS['add_javascript']['nextool'][] = 'front/module_assets.php?module=aiassist&file=aiassist-timeline-button.js.php';
    }
 
    /**
@@ -1497,12 +1501,14 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
             break;
 
          case self::FEATURE_REPLY:
-            if (!empty($ticketData['last_reply_at'])) {
-               if (empty($latestFollowupId) || (int)$ticketData['last_reply_followup_id'] === (int)$latestFollowupId) {
-                  $message = __('Somente é possível solicitar nova sugestão após um novo acompanhamento.', 'nextool');
-                  return false;
-               }
-            }
+            // Bloqueio removido: permitir regenerar sugestão mesmo sem novo acompanhamento
+            // O sistema agora retorna cache quando não há novos followups (com opção de forçar nova geração)
+            // if (!empty($ticketData['last_reply_at'])) {
+            //    if (empty($latestFollowupId) || (int)$ticketData['last_reply_followup_id'] === (int)$latestFollowupId) {
+            //       $message = __('Somente é possível solicitar nova sugestão após um novo acompanhamento.', 'nextool');
+            //       return false;
+            //    }
+            // }
             break;
 
          case self::FEATURE_SENTIMENT:
@@ -1532,6 +1538,11 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
     * @return void
     */
    public static function preTicketForm(CommonGLPI $item, $options = []) {
+      // Verifica permissão de visualização do módulo
+      if (!PluginNextoolPermissionManager::canViewModule('aiassist')) {
+         return;
+      }
+
       if (!($item instanceof Ticket)) {
          return;
       }
@@ -1567,6 +1578,11 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
     * @return void
     */
    public static function postTicketForm($param1 = null, $param2 = null) {
+      // Verifica permissão de visualização do módulo
+      if (!PluginNextoolPermissionManager::canViewModule('aiassist')) {
+         return;
+      }
+
       $item = null;
       $options = [];
 
@@ -2045,6 +2061,11 @@ JS;
          'label'            => __('Resumo (AI)', 'nextool'),
          'title'            => __('Resumo do Chamado', 'nextool'),
          'close'            => __('Fechar', 'nextool'),
+         'copy'             => __('Copiar', 'nextool'),
+         'copied'           => __('Copiado!', 'nextool'),
+         'insert'           => __('Inserir no editor', 'nextool'),
+         'inserted'         => __('Inserido!', 'nextool'),
+         'editor_error'     => __('Não foi possível encontrar o editor de texto para inserir o conteúdo.', 'nextool'),
          'processing'       => __('Gerando resumo...', 'nextool'),
          'generic_error'    => __('Não foi possível gerar o resumo.', 'nextool'),
          'unexpected_error' => __('Erro inesperado. Tente novamente em instantes.', 'nextool'),
@@ -2061,8 +2082,11 @@ JS;
 
       $script = <<<JS
 (function() {
-   var configId = '{$configId}';
-   var config = window[configId] || {};
+   'use strict';
+   
+   try {
+      var configId = '{$configId}';
+      var config = window[configId] || {};
 
    function findActionsContainer() {
       var container = document.querySelector('.timeline-buttons');
@@ -2134,6 +2158,11 @@ JS;
          params.append('_glpi_csrf_token', csrfToken);
          params.append('tickets_id', config.ticketId);
          params.append('action', 'summary');
+         
+         // Se botão tem flag forceNew, envia force=1
+         if (button.dataset.forceNew === '1') {
+            params.append('force', '1');
+         }
 
          fetch(config.endpoint, {
             method: 'POST',
@@ -2170,14 +2199,30 @@ JS;
                return;
             }
 
+            // Prioriza summary_html (já formatado) ou fallback para summary_text
+            var summaryHtml = '';
             var summaryText = '';
+            
             if (typeof data === 'string') {
                summaryText = data;
-            } else if (data && typeof data.summary_text === 'string') {
-               summaryText = data.summary_text;
+               summaryHtml = data;
+            } else if (data) {
+               summaryHtml = data.summary_html || data.summary_text || '';
+               summaryText = data.summary_text || '';
             }
 
-            showSummaryModal(summaryText);
+            // Detecta se veio de cache (pode estar em payload.data ou payload)
+            var fromCache = (data && data.from_cache) || payload.from_cache || false;
+            var cachedAt = (data && data.cached_at) || payload.cached_at || null;
+
+            // Usa o mesmo modal da timeline (definido em aiassist-timeline-button.js.php)
+            if (typeof window.aiassistShowModal === 'function') {
+               // Parâmetros: title, content, allowCopy, targetEditorId, fromCache, cachedAt, ticketId, showInsertButton, isHtml
+               window.aiassistShowModal(config.messages.title, summaryHtml, true, null, fromCache, cachedAt, config.ticketId, false, true);
+            } else {
+               // Fallback simples se modal não estiver carregado ainda
+               alert(summaryText);
+            }
          })
          .catch(function() {
             notifyError(config.messages.unexpected_error);
@@ -2202,95 +2247,6 @@ JS;
       }
    }
 
-   function showSummaryModal(summaryText) {
-      var modalId = 'aiassist-summary-modal';
-      var overlayId = 'aiassist-summary-modal-overlay';
-
-      var overlay = document.getElementById(overlayId);
-      var modal = document.getElementById(modalId);
-
-      if (!overlay) {
-         overlay = document.createElement('div');
-         overlay.id = overlayId;
-         overlay.style.position = 'fixed';
-         overlay.style.inset = '0';
-         overlay.style.background = 'rgba(15,23,42,0.45)';
-         overlay.style.zIndex = '1055';
-         overlay.style.display = 'flex';
-         overlay.style.alignItems = 'center';
-         overlay.style.justifyContent = 'center';
-         document.body.appendChild(overlay);
-
-         overlay.addEventListener('click', function(event) {
-            if (event.target === overlay) {
-               overlay.style.display = 'none';
-            }
-         });
-      }
-
-      if (!modal) {
-         modal = document.createElement('div');
-         modal.id = modalId;
-         modal.style.maxWidth = '680px';
-         modal.style.width = '100%';
-         modal.style.background = '#ffffff';
-         modal.style.borderRadius = '16px';
-         modal.style.boxShadow = '0 20px 40px rgba(15,23,42,0.35)';
-         modal.style.padding = '1.5rem 1.75rem';
-         modal.style.position = 'relative';
-
-         modal.innerHTML =
-            '<div class="d-flex justify-content-between align-items-start mb-2">' +
-               '<div>' +
-                  '<div class="text-muted text-uppercase" style="font-size:0.75rem;letter-spacing:.08em;">AI Assist</div>' +
-                  '<h5 class="mb-0">' + config.messages.title + '</h5>' +
-               '</div>' +
-               '<button type="button" class="btn-close" aria-label="' + config.messages.close + '"></button>' +
-            '</div>' +
-            '<div class="mb-3" style="max-height:380px;overflow:auto;">' +
-               '<pre id="aiassist-summary-modal-content" style="white-space:pre-wrap;word-break:break-word;font-size:0.92rem;line-height:1.5;margin:0;"></pre>' +
-            '</div>' +
-            '<div class="d-flex justify-content-end gap-2">' +
-               '<button type="button" class="btn btn-light btn-sm" data-role="close-summary-modal">' + config.messages.close + '</button>' +
-            '</div>';
-
-         overlay.appendChild(modal);
-
-         var closeButtons = modal.querySelectorAll('.btn-close, [data-role="close-summary-modal"]');
-         closeButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-               overlay.style.display = 'none';
-            });
-         });
-      }
-
-      var contentEl = modal.querySelector('#aiassist-summary-modal-content');
-      if (contentEl) {
-         var raw = summaryText || '';
-
-         // Escapa HTML básico
-         var safe = raw
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-
-         // Converte quebras de linha em <br> e remove marcadores simples ** de markdown
-         safe = safe.replace(/\\n/g, '<br>');
-         safe = safe.split('**').join('');
-
-         contentEl.innerHTML = safe;
-      }
-
-      overlay.style.display = 'flex';
-
-      var closeBtn = modal.querySelector('.btn-close');
-      if (closeBtn) {
-         closeBtn.focus();
-      }
-   }
-
    function bootstrap() {
       var container = findActionsContainer();
       if (container) {
@@ -2311,10 +2267,22 @@ JS;
       }, 200);
    }
 
+   // Proteção: só executa se estiver em contexto válido
+   if (!document || !document.readyState) {
+      return;
+   }
+
    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bootstrap);
+      if (document.addEventListener) {
+         document.addEventListener('DOMContentLoaded', bootstrap);
+      }
    } else {
       bootstrap();
+   }
+   
+   } catch (e) {
+      // Silencia erros para evitar poluir console em perfis sem permissão
+      console.debug('[AI Assist] Script não executado:', e.message);
    }
 })();
 JS;
@@ -2518,7 +2486,7 @@ JS;
    /**
     * Obtém nome amigável do usuário.
     */
-   private function getUserDisplayName($userId) {
+   public function getUserDisplayName($userId) {
       $userId = (int)$userId;
       if ($userId <= 0) {
          return __('Desconhecido', 'nextool');

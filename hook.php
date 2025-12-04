@@ -13,7 +13,7 @@
  * @version 2.x-dev
  * @author Richard Loureiro - linkedin.com/in/richard-ti
  * @license GPLv3+
- * @link https://ritech.site
+ * @link https://linkedin.com/in/richard-ti
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -22,6 +22,7 @@ if (!defined('GLPI_ROOT')) {
 
 require_once __DIR__ . '/inc/modulemanager.class.php';
 require_once __DIR__ . '/inc/basemodule.class.php';
+require_once __DIR__ . '/inc/permissionmanager.class.php';
 
 function plugin_nextool_install() {
    global $DB;
@@ -54,11 +55,16 @@ function plugin_nextool_install() {
       Toolbox::logInFile('plugin_nextool', 'Install health-check falhou: ' . $e->getMessage());
    }
 
+   PluginNextoolPermissionManager::installRights();
+   PluginNextoolPermissionManager::syncModuleRights();
+
    return true;
 }
 
 function plugin_nextool_upgrade($old_version) {
-   return plugin_nextool_install();
+   $result = plugin_nextool_install();
+   PluginNextoolPermissionManager::syncModuleRights();
+   return $result;
 }
 
 /**
@@ -112,6 +118,8 @@ function plugin_nextool_uninstall() {
    }
 
    Toolbox::logInFile('plugin_nextool', 'Plugin desinstalado: módulos removidos, caches limpos e diretórios temporários apagados.');
+
+   PluginNextoolPermissionManager::removeRights();
 
    return true;
 }

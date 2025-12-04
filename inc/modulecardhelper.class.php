@@ -1,4 +1,18 @@
 <?php
+/**
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Card Helper
+ * -------------------------------------------------------------------------
+ * Helper responsável por renderizar os botões/ações dos cards de módulos
+ * na UI do NexTool Solutions (Download, Instalar, Atualizar, Licenciar,
+ * Apagar dados, Acessar dados, etc.).
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
@@ -9,16 +23,47 @@ class PluginNextoolModuleCardHelper {
    public static function renderActions(array $state): string {
       $html = [];
 
+      $canManage      = !empty($state['can_manage_module'] ?? $state['can_manage_modules']);
+      $canPurge       = !empty($state['can_purge_module'] ?? $state['can_purge_modules']);
+      $canView        = !empty($state['can_view_module'] ?? $state['can_view_modules']);
+      $canManageAdmin = !empty($state['can_manage_admin_tabs']);
+
+      if (!$canView) {
+         return self::renderBadge(__('Sem permissão para visualizar ações deste módulo.', 'nextool'));
+      }
+
       $catalogDisabled = empty($state['catalog_is_enabled']);
 
-      // Termos de uso sempre aparece antes da validação da licença/plano
+      // Se não pode gerenciar, exibe apenas badge informativo + botões de dados/config
+      if (!$canManage) {
+         $html[] = self::renderBadge(__('Permissão de visualização: não é possível gerenciar este módulo.', 'nextool'), 'badge bg-info text-white me-1');
+         self::appendDataButtons($state, $html);
+         
+         // Adiciona botão de configurações se disponível
+         if ($state['show_config_button']) {
+            $html[] = self::renderLink(
+               __('Configurações', 'nextool'),
+               'btn btn-sm btn-primary',
+               'ti ti-settings',
+               $state['config_url']
+            );
+         }
+         
+         return implode('', $html);
+      }
+
+      // Termos de uso sempre aparece antes da validação da licença/plano (somente para administradores)
       if (!$state['has_validated_plan']) {
-         $html[] = self::renderPlainButton(
-            __('Termos de uso', 'nextool'),
-            'btn btn-sm btn-outline-primary',
-            'ti ti-file-text',
-            "nextoolValidateLicense(this);"
-         );
+         if ($canManageAdmin) {
+            $html[] = self::renderPlainButton(
+               __('Termos de uso', 'nextool'),
+               'btn btn-sm btn-outline-primary',
+               'ti ti-file-text',
+               "nextoolValidateLicense(this);"
+            );
+         } else {
+            $html[] = self::renderBadge(__('Plano não validado. Solicite a um administrador para realizar este passo.', 'nextool'));
+         }
          self::appendDataButtons($state, $html);
          return implode('', $html);
       }
@@ -144,23 +189,27 @@ class PluginNextoolModuleCardHelper {
 
    private static function appendDataButtons(array $state, array &$html): void {
       if (!$state['is_installed'] && !empty($state['has_module_data'])) {
-         $html[] = self::renderActionForm(
-            $state,
-            'purge_data',
-            __('Apagar dados', 'nextool'),
-            'btn btn-sm btn-outline-danger module-action',
-            'ti ti-database-off',
-            false,
-            __('Esta ação remove tabelas e registros relacionados ao módulo. Deseja continuar?', 'nextool')
-         );
+         if (!empty($state['can_purge_module'] ?? $state['can_purge_modules'])) {
+            $html[] = self::renderActionForm(
+               $state,
+               'purge_data',
+               __('Apagar dados', 'nextool'),
+               'btn btn-sm btn-outline-danger module-action',
+               'ti ti-database-off',
+               false,
+               __('Esta ação remove tabelas e registros relacionados ao módulo. Deseja continuar?', 'nextool')
+            );
+         }
 
-         $html[] = self::renderLink(
-            __('Acessar dados', 'nextool'),
-            'btn btn-sm btn-outline-secondary',
-            'ti ti-database-search',
-            $state['data_url'],
-            true
-         );
+         if (!empty($state['can_view_module'] ?? $state['can_view_modules'])) {
+            $html[] = self::renderLink(
+               __('Acessar dados', 'nextool'),
+               'btn btn-sm btn-outline-secondary',
+               'ti ti-database-search',
+               $state['data_url'],
+               true
+            );
+         }
       }
    }
 

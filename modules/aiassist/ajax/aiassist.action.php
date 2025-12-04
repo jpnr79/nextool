@@ -5,6 +5,45 @@
 
 // O includes.php já foi carregado pelo roteador module_ajax.php
 
+// Função auxiliar para renderizar resumo em HTML
+if (!function_exists('plugin_nextool_aiassist_render_summary_html')) {
+   function plugin_nextool_aiassist_render_summary_html($text) {
+      $text = (string)$text;
+      if ($text === '') {
+         return '';
+      }
+
+      // Normaliza quebras de linha
+      $text = str_replace(["\r\n", "\r"], "\n", $text);
+      
+      // Remove TODAS quebras múltiplas - mantém apenas 1
+      $text = preg_replace('/\n+/', "\n", $text);
+
+      // Escapa HTML para evitar XSS
+      $safe = Html::entities_deep($text);
+
+      // Converte **texto** em <strong>texto</strong>
+      $safe = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $safe);
+
+      // Adiciona quebra dupla antes de cada tópico 2-9 para espaçamento
+      $safe = preg_replace('/\n(\d+\.\s+<strong>)/', "\n\n$1", $safe);
+      
+      // Remove quebras no início
+      $safe = ltrim($safe, "\n");
+
+      // Converte quebras de linha em <br>
+      $safe = nl2br($safe, false);
+      
+      // LIMPEZA FINAL: Remove <br> duplicados (mantém no máximo 2 consecutivos)
+      $safe = preg_replace('/(<br>\s*){3,}/', '<br><br>', $safe);
+      
+      // Remove TODOS os \n literais restantes
+      $safe = str_replace("\n", '', $safe);
+
+      return $safe;
+   }
+}
+
 Toolbox::logInFile('plugin_nextool_aiassist', '[ENDPOINT] Requisição AJAX recebida - Action: ' . ($_POST['action'] ?? 'não definido'));
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -22,6 +61,17 @@ if (!isset($_SESSION['glpiID']) || $_SESSION['glpiID'] <= 0) {
 // Carrega classes do plugin
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/basemodule.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+
+// Verifica permissão de visualização do módulo
+if (!PluginNextoolPermissionManager::canViewModule('aiassist')) {
+   http_response_code(403);
+   echo json_encode([
+      'success' => false,
+      'message' => 'Você não tem permissão para usar este módulo.'
+   ]);
+   exit;
+}
 
 // Obtém instância do módulo via ModuleManager
 $manager = PluginNextoolModuleManager::getInstance();
@@ -98,21 +148,52 @@ switch ($action) {
          ], 409);
       }
 
-      $result = $module->getSummaryService()->generate($ticketId, $userId);
+      // Aceitar parâmetro force para forçar nova geração
+      $force = !empty($_POST['force']);
+      
+      $result = $module->getSummaryService()->generate($ticketId, $userId, [
+         'force' => $force
+      ]);
+      
       if (!empty($result['success'])) {
          // Recupera os dados consolidados do resumo após salvar, garantindo consistência
          $ticketData = $module->getTicketData($ticketId);
+         $summaryText = $ticketData['summary_text'] ?? ($result['content'] ?? '');
+         
+         // Formatar HTML no backend para garantir consistência
+         $summaryHtml = '';
+         if ($summaryText !== '') {
+            if (function_exists('plugin_nextool_aiassist_render_summary_html')) {
+               $summaryHtml = plugin_nextool_aiassist_render_summary_html($summaryText);
+            } else {
+               $summaryHtml = nl2br(Html::entities_deep($summaryText));
+            }
+         }
+         
          $summaryPayload = [
-            'summary_text' => $ticketData['summary_text'] ?? ($result['content'] ?? ''),
+            'summary_text' => $summaryText,
+            'summary_html' => $summaryHtml,
+            'is_html' => true,  // Indica que summary_html está pronto para renderizar
             'updated_at'   => !empty($ticketData['last_summary_at'])
                ? Html::convDateTime($ticketData['last_summary_at'])
                : Html::convDateTime(date('Y-m-d H:i:s')),
          ];
+         
+         // Indicar se veio de cache
+         if (!empty($result['from_cache'])) {
+            $summaryPayload['from_cache'] = true;
+            $summaryPayload['cached_at'] = !empty($result['cached_at']) 
+               ? Html::convDateTime($result['cached_at'])
+               : Html::convDateTime($ticketData['last_summary_at'] ?? date('Y-m-d H:i:s'));
+            $responseMessage = __('Resumo recuperado do cache (sem alterações recentes).', 'nextool');
+         } else {
+            $responseMessage = __('Resumo gerado com sucesso.', 'nextool');
+         }
 
          aiassist_send_response([
             'success' => true,
             'feature' => PluginNextoolAiassist::FEATURE_SUMMARY,
-            'message' => __('Resumo gerado com sucesso.', 'nextool'),
+            'message' => $responseMessage,
             'data' => $summaryPayload
          ]);
       }
@@ -133,14 +214,48 @@ switch ($action) {
          ], 409);
       }
 
-      $result = $module->getReplyService()->suggest($ticketId, $userId);
+      // Aceitar parâmetro force para forçar nova geração
+      $force = !empty($_POST['force']);
+      
+      $result = $module->getReplyService()->suggest($ticketId, $userId, [
+         'force' => $force
+      ]);
+      
       if (!empty($result['success'])) {
-         aiassist_send_response([
+         // Obter texto da resposta (pode vir do cache ou ser novo)
+         $replyText = $result['content'] ?? '';
+         
+         // Para sugestão de resposta: manter quebras EXATAMENTE como vieram da API
+         // (diferente do resumo que remove quebras múltiplas)
+         $replyHtml = '';
+         if ($replyText !== '') {
+            // Escapa HTML para segurança
+            $safe = Html::entities_deep($replyText);
+            // Converte quebras de linha em <br> PRESERVANDO TODAS as quebras
+            // (se a API mandou \n\n, vira <br><br>)
+            $replyHtml = nl2br($safe, false);
+         }
+         
+         $responseData = [
             'success' => true,
             'feature' => PluginNextoolAiassist::FEATURE_REPLY,
             'message' => __('Sugestão gerada com sucesso.', 'nextool'),
-            'data' => $result['suggestion'] ?? ''
-         ]);
+            'data' => $replyText,          // Texto plano (para inserir no editor)
+            'reply_html' => $replyHtml,    // HTML formatado (para exibir no modal)
+            'is_html' => true              // Indica que reply_html está pronto para renderizar
+         ];
+         
+         // Indicar se veio de cache
+         if (!empty($result['from_cache'])) {
+            $ticketData = $module->getTicketData($ticketId);
+            $responseData['from_cache'] = true;
+            $responseData['cached_at'] = !empty($result['cached_at']) 
+               ? Html::convDateTime($result['cached_at'])
+               : Html::convDateTime($ticketData['last_reply_at'] ?? date('Y-m-d H:i:s'));
+            $responseData['message'] = __('Sugestão recuperada do cache (sem alterações recentes).', 'nextool');
+         }
+         
+         aiassist_send_response($responseData);
       }
 
       aiassist_send_response([

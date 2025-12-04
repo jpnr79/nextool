@@ -1,4 +1,18 @@
 <?php
+/**
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Catalog
+ * -------------------------------------------------------------------------
+ * Catálogo interno de módulos do NexTool Solutions, usado para
+ * montar os cards na UI e definir metadados como nome, descrição,
+ * versão, ícone, billing tier e se cada módulo é baixável/configurável.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
@@ -49,7 +63,7 @@ class PluginNextoolModuleCatalog {
       'pendingsurvey' => [
          'name'        => 'Pending Survey',
          'description' => 'Exibe pop-ups alertando o usuário sobre pesquisas de satisfação pendentes e, opcionalmente, bloqueia a abertura de novos chamados quando a quantidade de pesquisas não respondidas ultrapassar o limite configurado (X).',
-         'version'     => '1.0.0',
+         'version'     => '1.0.1',
          'icon'        => 'ti ti-message-question',
          'billing_tier'=> 'PAID',
          'has_config'  => true,
@@ -75,7 +89,7 @@ class PluginNextoolModuleCatalog {
       'helloworld' => [
          'name'        => 'Hello World (PoC)',
          'description' => 'Demonstração da distribuição remota de módulos via ContainerAPI.',
-         'version'     => '1.0.0',
+         'version'     => '1.0.1',
          'icon'        => 'ti ti-code',
          'billing_tier'=> 'FREE',
          'has_config'  => true,

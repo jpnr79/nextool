@@ -52,6 +52,30 @@ class PluginNextoolAiassistSummaryService {
          ];
       }
 
+      // Verificar se deve usar cache (a menos que force=true)
+      $force = !empty($options['force']);
+      
+      if (!$force) {
+         $ticketData = $this->module->getTicketData($ticketId);
+         $cachedSummary = trim((string)($ticketData['summary_text'] ?? ''));
+         $lastSummaryFollowupId = (int)($ticketData['last_summary_followup_id'] ?? 0);
+         $currentLastFollowupId = (int)($context['last_followup_id'] ?? 0);
+         
+         // Se já tem cache E não há novo followup, retornar cache
+         if ($cachedSummary !== '' && $lastSummaryFollowupId === $currentLastFollowupId) {
+            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+               '[SUMMARY] Retornando resumo em cache (sem novos followups) - Ticket #%d',
+               $ticketId
+            ));
+            return [
+               'success' => true,
+               'content' => $cachedSummary,
+               'from_cache' => true,
+               'cached_at' => $ticketData['last_summary_at'] ?? null
+            ];
+         }
+      }
+
       $estimatedTokens = $this->module->estimateTokensFromText($context['text']);
       if (!$this->module->hasTokensAvailable($estimatedTokens)) {
          return [
@@ -65,7 +89,7 @@ class PluginNextoolAiassistSummaryService {
       $response = $this->provider->chat([
          [
             'role' => 'system',
-            'content' => 'Você é um assistente de suporte especializado em resumir chamados de help desk em português do Brasil. Sempre responda em markdown estruturado, com foco em contexto, ações, pendências, próximos passos e observações relevantes.'
+            'content' => 'Resuma chamados em português do Brasil. Responda em formato estruturado, com foco em contexto, ações, pendências, próximos passos e observações relevantes.'
          ],
          [
             'role' => 'user',
@@ -122,7 +146,6 @@ class PluginNextoolAiassistSummaryService {
 
       return $metadata . "\n\n" .
          "Gere um resumo do chamado, em **português do Brasil**, seguindo EXATAMENTE o formato abaixo (markdown):\n\n" .
-         "**Chamado #{$ticketId} - Resumo**\n\n" .
          "1. **Contexto:** ...\n" .
          "2. **Ações:** ...\n" .
          "3. **Pendências:** ...\n" .
@@ -131,7 +154,8 @@ class PluginNextoolAiassistSummaryService {
          "Regras importantes:\n" .
          "- Use frases curtas e objetivas.\n" .
          "- Preencha todos os 5 itens sempre que possível (use \"Sem pendências\" ou \"Sem observações relevantes\" quando não houver informação).\n" .
-         "- NÃO inclua explicações adicionais, comentários fora da estrutura acima, nem traduções para outros idiomas.\n\n" .
+         "- NÃO inclua título, explicações adicionais, comentários fora da estrutura acima, nem traduções para outros idiomas.\n" .
+         "- Comece diretamente pelo item 1.\n\n" .
          "A seguir está o contexto completo do chamado para você resumir:\n\n" .
          $contextText;
    }

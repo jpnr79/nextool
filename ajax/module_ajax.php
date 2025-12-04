@@ -1,17 +1,22 @@
 <?php
 /**
- * Roteador genérico para arquivos AJAX dos módulos do Nextool
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module AJAX Router
+ * -------------------------------------------------------------------------
+ * Roteador genérico para arquivos AJAX dos módulos do NexTool Solutions.
  * 
- * Este arquivo roteia requisições AJAX para arquivos dentro de modules/[nome]/ajax/
- * Soluciona o problema de roteamento do Symfony no GLPI 11 que intercepta
- * URLs diretas para arquivos dentro de modules/[nome]/ajax/
+ * Este arquivo roteia requisições AJAX para arquivos dentro de
+ * modules/[nome]/ajax/ e soluciona o problema de roteamento do Symfony
+ * no GLPI 11, que intercepta URLs diretas para esses arquivos.
  * 
  * Uso: 
  * - AJAX: /plugins/nextool/ajax/module_ajax.php?module=pendingsurvey&file=pendingsurvey.php
- * 
- * @author Richard Loureiro
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
  * @copyright 2025 Richard Loureiro
- * @license GPLv3+
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 // Define GLPI_ROOT PRIMEIRO (necessário para caminhos)

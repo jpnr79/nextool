@@ -1,6 +1,17 @@
 <?php
 /**
- * Auditoria de ações de módulos do Nextool
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Audit
+ * -------------------------------------------------------------------------
+ * Auditoria de ações de módulos do NexTool Solutions, registrando
+ * instalação, ativação, desativação, atualização e operações de
+ * dados em glpi_plugin_nextool_main_module_audit.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

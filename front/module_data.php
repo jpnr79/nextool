@@ -1,13 +1,28 @@
 <?php
+/**
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Data Viewer
+ * -------------------------------------------------------------------------
+ * Tela administrativa que lista as tabelas de dados associadas a um
+ * módulo do NexTool Solutions, permitindo inspeção/apagamento seguro
+ * via UI.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
+ */
 
 include ('../../../inc/includes.php');
 
-Session::checkRight('config', READ);
-
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
 $moduleKey = $_GET['module'] ?? '';
 if ($moduleKey === '') {
    Html::displayErrorAndDie(__('Módulo não informado.', 'nextool'));
 }
+
+PluginNextoolPermissionManager::assertCanViewModule($moduleKey);
 
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulecatalog.class.php';

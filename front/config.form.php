@@ -1,15 +1,32 @@
 <?php
 /**
- * Formulário de configuração do plugin
- * 
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Plugin Configuration Form
+ * -------------------------------------------------------------------------
+ * Formulário principal de configuração do plugin NexTool Solutions.
  * Este arquivo é incluído via setup.class.php::displayTabContentForItem()
- * O GLPI já carregou todos os includes necessários
+ * e assume que o GLPI já carregou todos os includes necessários.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 // Não precisa incluir includes.php pois já está carregado
 // O arquivo é chamado via include no contexto do GLPI
 
 global $DB;
+
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+
+$canViewModules     = PluginNextoolPermissionManager::canViewModules();
+$canManageModules   = PluginNextoolPermissionManager::canManageModules();
+$canPurgeModules    = PluginNextoolPermissionManager::canPurgeModuleData();
+$canViewAdminTabs   = PluginNextoolPermissionManager::canAccessAdminTabs();
+$canManageAdminTabs = PluginNextoolPermissionManager::canManageAdminTabs();
+$canViewAnyModule   = PluginNextoolPermissionManager::canViewAnyModule();
 
 // Obtém configuração atual
 $config    = PluginNextoolConfig::getConfig();
@@ -227,6 +244,7 @@ $allModuleKeys = array_unique(array_merge(array_keys($catalogMeta), array_keys($
 if (empty($allModuleKeys)) {
    $allModuleKeys = array_keys($catalogMeta);
 }
+PluginNextoolPermissionManager::syncModuleRights($allModuleKeys);
 
 foreach ($allModuleKeys as $moduleKey) {
    $meta = $catalogMeta[$moduleKey] ?? [];
@@ -284,6 +302,12 @@ foreach ($allModuleKeys as $moduleKey) {
    $hasModuleData = $manager->moduleHasData($moduleKey);
    $moduleHasConfig = $moduleInstance && $moduleInstance->hasConfig();
    $configUrl = ($moduleHasConfig && $moduleInstance) ? $moduleInstance->getConfigPage() : null;
+   $moduleCanView = PluginNextoolPermissionManager::canViewModule($moduleKey);
+   if (!$moduleCanView) {
+      continue;
+   }
+   $moduleCanManage = PluginNextoolPermissionManager::canManageModule($moduleKey);
+   $moduleCanPurge = PluginNextoolPermissionManager::canPurgeModuleDataForModule($moduleKey);
 
    $modulesState[] = [
       'module_key'        => $moduleKey,
@@ -322,7 +346,14 @@ foreach ($allModuleKeys as $moduleKey) {
         'upgrade_url'             => 'https://nextoolsolutions.ai',
          'data_url'                => Plugin::getWebDir('nextool') . '/front/module_data.php?module=' . urlencode($moduleKey),
          'config_url'              => $configUrl,
-         'show_config_button'      => $isInstalled && $moduleHasConfig,
+         'show_config_button'      => $isInstalled && $moduleHasConfig && $moduleCanView,
+         'can_manage_admin_tabs'   => $canManageAdminTabs,
+         'can_manage_modules'      => $canManageModules,
+         'can_purge_modules'       => $canPurgeModules,
+         'can_view_modules'        => $canViewModules,
+         'can_manage_module'       => $moduleCanManage,
+         'can_purge_module'        => $moduleCanPurge,
+         'can_view_module'         => $moduleCanView,
       ]),
    ];
 }
@@ -376,55 +407,73 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
    }
 </style>
 
+<?php
+$tabsRegistry = [
+   'modules' => [
+      'id'      => 'rt-tab-modulos',
+      'label'   => __('Módulos', 'nextool'),
+      'icon'    => 'ti ti-puzzle',
+      'allowed' => $canViewAnyModule,  // Permite visualizar se tem permissão em ALGUM módulo
+   ],
+   'contato' => [
+      'id'      => 'rt-tab-contato',
+      'label'   => __('Contato', 'nextool'),
+      'icon'    => 'ti ti-headset',
+      'allowed' => $canViewAdminTabs,
+   ],
+   'licenca' => [
+      'id'      => 'rt-tab-licenca',
+      'label'   => __('Licenciamento', 'nextool'),
+      'icon'    => 'ti ti-key',
+      'allowed' => $canViewAdminTabs,
+   ],
+   'logs' => [
+      'id'      => 'rt-tab-logs',
+      'label'   => __('Logs', 'nextool'),
+      'icon'    => 'ti ti-report-analytics',
+      'allowed' => $canViewAdminTabs,
+   ],
+];
+$firstTabKey = null;
+foreach ($tabsRegistry as $key => $meta) {
+   if ($meta['allowed']) {
+      $firstTabKey = $key;
+      break;
+   }
+}
+?>
+
 <div class="m-3">
 
    <h3>NexTool Solutions - Conectando soluções, gerando valor</h3>
 
-      <!-- Abas internas do Nextool -->
-      <ul class="nav nav-tabs mt-3" id="nextool-config-tabs" role="tablist">
-         <li class="nav-item" role="presentation">
-            <button class="nav-link active"
-                    id="rt-tab-modulos-link"
-                    type="button"
-                    data-bs-toggle="tab"
-                    data-bs-target="#rt-tab-modulos"
-                    role="tab">
-               <i class="ti ti-puzzle me-1"></i>Módulos
-            </button>
-         </li>
-         <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="rt-tab-contato-link"
-                    type="button"
-                    data-bs-toggle="tab"
-                    data-bs-target="#rt-tab-contato"
-                    role="tab">
-               <i class="ti ti-headset me-1"></i>Contato
-            </button>
-         </li>
-         <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="rt-tab-licenca-link"
-                    type="button"
-                    data-bs-toggle="tab"
-                    data-bs-target="#rt-tab-licenca"
-                    role="tab">
-               <i class="ti ti-key me-1"></i>Licenciamento
-            </button>
-         </li>
-         <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="rt-tab-logs-link"
-                    type="button"
-                    data-bs-toggle="tab"
-                    data-bs-target="#rt-tab-logs"
-                    role="tab">
-               <i class="ti ti-report-analytics me-1"></i>Logs
-            </button>
-         </li>
-      </ul>
+     <!-- Abas internas do Nextool -->
+     <?php if ($firstTabKey === null): ?>
+        <div class="alert alert-warning mt-3">
+           <i class="ti ti-lock me-2"></i>
+           <?php echo __('Seu perfil não possui permissão para acessar as abas do NexTool.', 'nextool'); ?>
+        </div>
+     </div>
+     <?php return; ?>
+     <?php endif; ?>
+     <ul class="nav nav-tabs mt-3" id="nextool-config-tabs" role="tablist">
+        <?php foreach ($tabsRegistry as $key => $tabMeta): if (!$tabMeta['allowed']) { continue; } ?>
+        <?php $isActive = ($key === $firstTabKey) ? ' active' : ''; ?>
+        <li class="nav-item" role="presentation">
+           <button class="nav-link<?php echo $isActive; ?>"
+                   id="<?php echo $tabMeta['id']; ?>-link"
+                   type="button"
+                   data-bs-toggle="tab"
+                   data-bs-target="#<?php echo $tabMeta['id']; ?>"
+                   role="tab">
+              <i class="<?php echo $tabMeta['icon']; ?> me-1"></i><?php echo Html::entities_deep($tabMeta['label']); ?>
+           </button>
+        </li>
+        <?php endforeach; ?>
+     </ul>
 
-      <!-- Hero de plano / ativação FIXO para todas as abas -->
+      <?php if ($canViewAdminTabs): ?>
+      <!-- Hero de plano / ativação para abas administrativas -->
       <div class="card shadow-sm border-0 mt-3" style="background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 40%, #14b8a6 100%);">
          <div class="card-body text-white">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
@@ -471,7 +520,8 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                <div class="text-md-end">
                   <button type="button"
                           class="btn btn-hero-validate fw-semibold mb-2"
-                          onclick="nextoolValidateLicense(this);">
+                          onclick="nextoolValidateLicense(this);"
+                          <?php echo $canViewAdminTabs ? '' : ' disabled'; ?>>
                      <i class="ti ti-arrow-up-right me-1"></i>
                      Validar Licença
                   </button>
@@ -490,11 +540,13 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
             </div>
          </div>
       </div>
+      <?php endif; ?>
 
       <div class="tab-content mt-4" id="nextool-config-tabs-content">
 
-         <!-- TAB 1: Módulos -->
-        <div class="tab-pane fade show active" id="rt-tab-modulos" role="tabpanel" aria-labelledby="rt-tab-modulos-link">
+        <!-- TAB 1: Módulos -->
+        <?php if ($canViewAnyModule): ?>
+        <div class="tab-pane fade<?php echo $firstTabKey === 'modules' ? ' show active' : ''; ?>" id="rt-tab-modulos" role="tabpanel" aria-labelledby="rt-tab-modulos-link">
             <div class="d-flex flex-column gap-3">
 
                <!-- Card de Módulos -->
@@ -510,6 +562,12 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                      </h4>
                   </div>
                   <div class="card-body">
+                     <?php if (!$canManageModules): ?>
+                        <div class="alert alert-info">
+                           <i class="ti ti-info-circle me-2"></i>
+                           <?php echo __('Você possui acesso somente leitura. Os botões de download, instalação e atualização permanecem desabilitados.', 'nextool'); ?>
+                        </div>
+                     <?php endif; ?>
                      <?php if ($requiresPolicyAcceptance): ?>
                         <div class="alert alert-info mb-0">
                            <div class="d-flex flex-column gap-3 align-items-center text-center text-lg-start">
@@ -518,38 +576,44 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                                  <div>
                                     <p class="mb-2">
                                        Para visualizar e instalar os módulos oficiais da NexTool Solutions, é necessário aceitar as
-                                       <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md" target="_blank" class="text-decoration-underline fw-semibold">Políticas de Uso</a>
-                                       e sincronizar o catálogo com o ContainerAPI.
+                                       <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md" target="_blank" class="text-decoration-underline fw-semibold">Políticas de Uso</a>.
                                     </p>
                                     <p class="mb-0 text-muted small">
-                                       Esse processo valida o ambiente no ContainerAPI, registra o aceite e atualiza a lista local de módulos.
+                                       Esse processo valida o ambiente em nossos servidores de API, registra o aceite e atualiza a lista local de módulos.
                                     </p>
                                  </div>
                               </div>
                               <div class="w-100" style="max-width: 480px;">
-                                 <form method="post"
-                                       class="d-flex flex-column gap-2 align-items-stretch"
-                                       action="<?php echo Plugin::getWebDir('nextool') . '/front/config.save.php'; ?>">
-                                    <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
-                                    <?php echo Html::hidden('action', ['value' => 'accept_policies']); ?>
-                                    <?php echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']); ?>
-                                    <button type="submit" class="btn btn-primary w-100">
-                                       <i class="ti ti-checkbox me-1"></i>
-                                       Aceitar políticas e liberar módulos
-                                    </button>
-                                    <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md"
-                                       target="_blank"
-                                       class="btn btn-link px-0 text-decoration-underline">
-                                       Revisar políticas de uso
-                                    </a>
-                                 </form>
+                                 <?php if ($canManageAdminTabs): ?>
+                                    <form method="post"
+                                          class="d-flex flex-column gap-2 align-items-stretch"
+                                          action="<?php echo Plugin::getWebDir('nextool') . '/front/config.save.php'; ?>">
+                                       <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
+                                       <?php echo Html::hidden('action', ['value' => 'accept_policies']); ?>
+                                       <?php echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']); ?>
+                                       <button type="submit" class="btn btn-primary w-100">
+                                          <i class="ti ti-checkbox me-1"></i>
+                                          Aceitar políticas e liberar módulos
+                                       </button>
+                                       <a href="https://github.com/RPGMais/nextool/blob/main/POLICIES_OF_USE.md"
+                                          target="_blank"
+                                          class="btn btn-link px-0 text-decoration-underline">
+                                          Revisar políticas de uso
+                                       </a>
+                                    </form>
+                                 <?php else: ?>
+                                    <div class="alert alert-light border mb-0">
+                                       <i class="ti ti-lock me-2"></i>
+                                       <?php echo __('Somente usuários com permissão de gerenciamento podem liberar o catálogo de módulos.', 'nextool'); ?>
+                                    </div>
+                                 <?php endif; ?>
                               </div>
                            </div>
                         </div>
-                     <?php elseif (empty($modulesState)): ?>
+                    <?php elseif (empty($modulesState)): ?>
                         <div class="alert alert-info mb-0">
                            <i class="ti ti-info-circle me-2"></i>
-                           Nenhum módulo encontrado. Crie seu primeiro módulo em <code>inc/modules/[nome]/</code>
+                           <?php echo __('Nenhum módulo visível para este perfil. Ajuste as permissões do módulo ou crie um novo módulo em', 'nextool'); ?> <code>inc/modules/[nome]/</code>
                         </div>
                      <?php else: ?>
                         <div class="row g-3">
@@ -624,6 +688,7 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
 
             </div>
          </div>
+        <?php endif; ?>
 
         <!-- TAB 2: Licenças e Status -->
         <div class="tab-pane fade" id="rt-tab-licenca" role="tabpanel" aria-labelledby="rt-tab-licenca-link">
@@ -669,7 +734,7 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                                 <h6 class="fw-semibold mb-3"><?php echo __('Licenças do ambiente', 'nextool'); ?></h6>
                                 <?php if (empty($licensesSnapshot)): ?>
                                    <p class="text-muted mb-0">
-                                      <?php echo __('Nenhum registro retornado pelo ContainerAPI. Vincule licenças no ritecadmin para liberar módulos pagos.', 'nextool'); ?>
+                                      <?php echo __('Nenhum registro encontrado nos servidores NexTool. Entre em contato para acessar os modulos licenciados.', 'nextool'); ?>
                                    </p>
                                 <?php else: ?>
                                    <div class="table-responsive">
@@ -876,7 +941,8 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
 
         <!-- TAB 3: Logs -->
 
-         <div class="tab-pane fade" id="rt-tab-logs" role="tabpanel" aria-labelledby="rt-tab-logs-link">
+         <?php if ($canViewAdminTabs): ?>
+         <div class="tab-pane fade<?php echo $firstTabKey === 'logs' ? ' show active' : ''; ?>" id="rt-tab-logs" role="tabpanel" aria-labelledby="rt-tab-logs-link">
             <div class="card shadow-sm">
                <div class="card-header mb-3 pt-2 border-top rounded-0">
                   <h4 class="card-title ms-5 mb-0">
@@ -914,9 +980,11 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                </div>
             </div>
          </div>
+         <?php endif; ?>
 
-         <!-- TAB CONTATO -->
-         <div class="tab-pane fade" id="rt-tab-contato" role="tabpanel" aria-labelledby="rt-tab-contato-link">
+        <!-- TAB CONTATO -->
+        <?php if ($canViewAdminTabs): ?>
+        <div class="tab-pane fade<?php echo $firstTabKey === 'contato' ? ' show active' : ''; ?>" id="rt-tab-contato" role="tabpanel" aria-labelledby="rt-tab-contato-link">
             <div class="card shadow-sm">
                <div class="card-header mb-3 pt-2 border-top rounded-0">
                   <h4 class="card-title ms-5 mb-0">
@@ -1073,16 +1141,22 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
                         </div>
                      </div>
 
-                     <div class="d-flex align-items-center gap-3 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                           <i class="ti ti-send me-1"></i>Enviar contato
-                        </button>
-                        <div id="nextool-contact-feedback" class="small"></div>
-                     </div>
+                    <div class="d-flex align-items-center gap-3 mt-4">
+                       <button type="submit" class="btn btn-primary" <?php echo $canManageAdminTabs ? '' : ' disabled'; ?>>
+                          <i class="ti ti-send me-1"></i>Enviar contato
+                       </button>
+                       <div id="nextool-contact-feedback" class="small"></div>
+                    </div>
+                    <?php if (!$canManageAdminTabs): ?>
+                       <p class="text-muted small mt-2 mb-0">
+                          <i class="ti ti-lock me-1"></i><?php echo __('Apenas administradores podem enviar este formulário.', 'nextool'); ?>
+                       </p>
+                    <?php endif; ?>
                   </form>
                </div>
             </div>
          </div>
+         <?php endif; ?>
 
       </div>
 
@@ -1090,7 +1164,11 @@ $stats['disabled'] = $stats['installed'] - $stats['enabled'];
 
 <script type="text/javascript">
 function nextoolActivateDefaultTab() {
-   var firstTab = document.getElementById('rt-tab-modulos-link');
+   var tabsContainer = document.getElementById('nextool-config-tabs');
+   if (!tabsContainer) {
+      return;
+   }
+   var firstTab = tabsContainer.querySelector('button.nav-link');
    if (!firstTab) {
       return;
    }
@@ -1099,7 +1177,8 @@ function nextoolActivateDefaultTab() {
       bootstrap.Tab.getOrCreateInstance(firstTab).show();
    } else {
       firstTab.classList.add('active');
-      var target = document.getElementById('rt-tab-modulos');
+      var targetSelector = firstTab.getAttribute('data-bs-target');
+      var target = targetSelector ? document.querySelector(targetSelector) : null;
       if (target) {
          target.classList.add('show', 'active');
          target.style.display = 'block';

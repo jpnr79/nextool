@@ -194,7 +194,7 @@ echo '<table class="table table-sm">';
 echo '<tr><td><strong>Módulo Ativo:</strong></td><td>' . ($module->isEnabled() ? '✅ Sim' : '❌ Não') . '</td></tr>';
 echo '<tr><td><strong>Provedor Configurado:</strong></td><td>' . ($provider ? '✅ Sim' : '❌ Não') . '</td></tr>';
 echo '<tr><td><strong>Tipo de Provedor:</strong></td><td>' . ($settings['provider_type'] ?? 'OpenAI') . '</td></tr>';
-echo '<tr><td><strong>Modo:</strong></td><td>' . ($useProxy ? 'Proxy RITEC' : 'API Direta') . '</td></tr>';
+echo '<tr><td><strong>Modo:</strong></td><td>' . ($useProxy ? 'Proxy NexTool Solutions' : 'API Direta') . '</td></tr>';
 echo '<tr><td><strong>API Key configurada:</strong></td><td>' . ($apiKeyConfigured ? '✅ Sim (***' . $apiKeySuffix . ')' : '❌ Não') . '</td></tr>';
 echo '<tr><td><strong>Model:</strong></td><td>' . ($settingsWithSecret['model'] ?? 'gpt-4o-mini') . '</td></tr>';
 echo '<tr><td><strong>Endpoint:</strong></td><td>' . ($settingsWithSecret['openai_endpoint'] ?? 'https://api.openai.com/v1/chat/completions') . '</td></tr>';

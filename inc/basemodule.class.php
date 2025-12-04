@@ -1,14 +1,19 @@
 <?php
 /**
- * Classe abstrata base para todos os módulos do Nextool
- * 
- * Todos os módulos devem estender esta classe e implementar seus métodos abstratos.
- * Esta classe define a interface padrão que todos os módulos devem seguir.
- * 
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - BaseModule
+ * -------------------------------------------------------------------------
+ * Classe abstrata base para todos os módulos do NexTool Solutions.
+ * Todos os módulos devem estender esta classe e implementar seus métodos
+ * abstratos. Esta classe define a interface padrão que todos os módulos
+ * devem seguir.
+ * -------------------------------------------------------------------------
  * @abstract
- * @author Richard Loureiro
+ * @author    Richard Loureiro
  * @copyright 2025 Richard Loureiro
- * @license GPLv3+
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -137,6 +142,19 @@ abstract class PluginNextoolBaseModule {
     */
    public function getConfigPage() {
       return null;
+   }
+
+   /**
+    * Verifica se o usuário pode editar as configurações do módulo
+    * Usado nas páginas de configuração para habilitar/desabilitar campos
+    * 
+    * @return bool True se pode editar (UPDATE), False se apenas visualizar (READ)
+    */
+   public function canEditConfig() {
+      if (!class_exists('PluginNextoolPermissionManager')) {
+         return false;
+      }
+      return PluginNextoolPermissionManager::canManageModule($this->getModuleKey());
    }
 
    /**

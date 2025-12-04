@@ -1,7 +1,9 @@
 <?php
 /**
- * Gerenciador de Módulos do Nextool
- * 
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - ModuleManager
+ * -------------------------------------------------------------------------
+ * Gerenciador de módulos do NexTool Solutions.
  * Responsável por:
  * - Descobrir módulos disponíveis (com cache para melhor performance)
  * - Carregar módulos ativos
@@ -16,10 +18,12 @@
  * - Cache é limpo automaticamente ao instalar/desinstalar módulos
  * - Use clearCache() para limpar cache manualmente
  * - Use refreshModules() para forçar atualização do cache
- * 
- * @author Richard Loureiro
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
  * @copyright 2025 Richard Loureiro
- * @license GPLv3+
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -896,7 +900,11 @@ class PluginNextoolModuleManager {
 
    /**
     * Instala todos os módulos disponíveis
-    * Útil durante instalação do plugin
+    * 
+    * @deprecated Não usado atualmente. Mantido para uso futuro/scripts.
+    * @note A instalação do plugin usa loop manual em hook.php::plugin_nextool_install()
+    *       para ter controle granular de erros por módulo.
+    * @see plugin_nextool_install() em hook.php para implementação manual
     * 
     * @return array Resultado das instalações
     */
@@ -914,7 +922,11 @@ class PluginNextoolModuleManager {
 
    /**
     * Desinstala todos os módulos
-    * Útil durante desinstalação do plugin
+    * 
+    * @deprecated Não usado atualmente. Mantido para uso futuro/scripts.
+    * @note A desinstalação do plugin usa loop manual em hook.php::plugin_nextool_uninstall()
+    *       para ter controle granular de erros por módulo com try/catch individual.
+    * @see plugin_nextool_uninstall() em hook.php (linhas 78-94) para implementação manual
     * 
     * @return array Resultado das desinstalações
     */

@@ -1,10 +1,13 @@
 <?php
 /**
- * Roteador genérico para arquivos CSS/JS dos módulos do Nextool
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Assets Router
+ * -------------------------------------------------------------------------
+ * Roteador genérico para arquivos CSS/JS dos módulos do NexTool Solutions.
  * 
- * Este arquivo serve arquivos CSS/JS de QUALQUER módulo sem passar pelos hooks do GLPI.
- * Soluciona o problema de roteamento do Symfony no GLPI 11 que intercepta
- * URLs diretas para arquivos dentro de modules/[nome]/front/
+ * Este arquivo serve arquivos CSS/JS de QUALQUER módulo sem passar pelos
+ * hooks do GLPI e soluciona o problema de roteamento do Symfony no GLPI 11,
+ * que intercepta URLs diretas para arquivos dentro de modules/[nome]/front/.
  * 
  * Formato de URL aceito (2 formas):
  * 1. PATH_INFO: /plugins/nextool/front/module_assets.php/[module]/[file]
@@ -14,10 +17,12 @@
  *    Exemplo: /plugins/nextool/front/module_assets.php?module=pendingsurvey&file=pendingsurvey.css.php
  * 
  * Este roteador é genérico e funciona com qualquer módulo.
- * 
- * @author Richard Loureiro
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
  * @copyright 2025 Richard Loureiro
- * @license GPLv3+
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 // Define GLPI_ROOT PRIMEIRO (necessário para caminhos)

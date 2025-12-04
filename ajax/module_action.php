@@ -1,12 +1,23 @@
 <?php
 /**
- * Processa ações dos módulos (install, uninstall, enable, disable)
- * Endpoint AJAX para gerenciamento de módulos
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Module Action Endpoint
+ * -------------------------------------------------------------------------
+ * Endpoint AJAX responsável por processar ações dos módulos do
+ * NexTool Solutions (install, uninstall, enable, disable, update),
+ * centralizando o gerenciamento via GLPI.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 include ('../../../inc/includes.php');
 
-Session::checkRight('config', UPDATE);
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+PluginNextoolPermissionManager::assertCanManageModules();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    Session::addMessageAfterRedirect(__('Método inválido para esta ação.', 'nextool'), false, ERROR);
@@ -29,6 +40,14 @@ if (empty($action) || empty($moduleKey)) {
       'message' => 'Parâmetros inválidos'
    ]);
    exit;
+}
+
+if (in_array($action, ['install', 'uninstall', 'enable', 'disable', 'update', 'download'], true)) {
+   PluginNextoolPermissionManager::assertCanManageModule($moduleKey);
+}
+
+if ($action === 'purge_data') {
+   PluginNextoolPermissionManager::assertCanPurgeModuleDataForModule($moduleKey);
 }
 
 // Carrega ModuleManager

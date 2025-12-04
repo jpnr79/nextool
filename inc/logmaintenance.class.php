@@ -1,4 +1,18 @@
 <?php
+/**
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Log Maintenance
+ * -------------------------------------------------------------------------
+ * Rotinas de manutenção de logs/auditoria do NexTool Solutions, responsáveis
+ * por purgar registros antigos e evitar crescimento descontrolado das
+ * tabelas de histórico.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");

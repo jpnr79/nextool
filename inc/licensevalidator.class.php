@@ -1,16 +1,24 @@
 <?php
 /**
- * Validador de licença do Nextool (plugin operacional)
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - License Validator
+ * -------------------------------------------------------------------------
+ * Validador de licença do NexTool Solutions (plugin operacional).
  *
  * Responsável por:
  * - Ler configuração de licença/endpoints
- * - Decidir quando usar cache ou chamar a API remota
- * - Chamar o endpoint de validação do administrativo (ritecadmin)
+ * - Decidir quando usar cache ou chamar a API remota (ContainerAPI)
  * - Atualizar o cache local (tabela glpi_plugin_nextool_main_license_config)
  * - Registrar tentativas (glpi_plugin_nextool_main_validation_attempts)
  *
- * Esta classe NÃO toma decisão sobre bloquear ou não módulos.
- * A decisão de bloqueio/desativação será feita em etapas posteriores (2.3 / Fase 3).
+ * A decisão de bloqueio/desativação de módulos é aplicada em outras
+ * camadas (ModuleManager / UI), com base no snapshot retornado.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {

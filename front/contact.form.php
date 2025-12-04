@@ -1,6 +1,16 @@
 <?php
 /**
- * Endpoint AJAX para envio do formulário de contato
+ * -------------------------------------------------------------------------
+ * NexTool Solutions - Contact Form Endpoint
+ * -------------------------------------------------------------------------
+ * Endpoint AJAX para envio do formulário de contato do NexTool Solutions,
+ * usado para solicitar informações sobre planos, módulos e suporte.
+ * -------------------------------------------------------------------------
+ * @author    Richard Loureiro
+ * @copyright 2025 Richard Loureiro
+ * @license   GPLv3+ https://www.gnu.org/licenses/gpl-3.0.html
+ * @link      https://linkedin.com/in/richard-ti
+ * -------------------------------------------------------------------------
  */
 
 include ('../../../inc/includes.php');
@@ -8,6 +18,8 @@ include ('../../../inc/includes.php');
 header('Content-Type: application/json');
 
 Session::checkRight("config", READ);
+require_once GLPI_ROOT . '/plugins/nextool/inc/permissionmanager.class.php';
+PluginNextoolPermissionManager::assertCanManageAdminTabs();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
    echo json_encode([
       'success' => false,

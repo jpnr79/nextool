@@ -10,6 +10,11 @@ if (!defined('GLPI_ROOT')) {
 class PluginNextoolAiassistTicket extends CommonDBTM {
 
    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
+      // Verifica permissão de visualização do módulo
+      if (!PluginNextoolPermissionManager::canViewModule('aiassist')) {
+         return '';
+      }
+
       if ($item instanceof Ticket) {
          return "<span class='d-inline-flex align-items-center gap-1'><i class='ti ti-robot'></i><span>AI Assist</span></span>";
       }
@@ -17,6 +22,12 @@ class PluginNextoolAiassistTicket extends CommonDBTM {
    }
 
    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
+      // Verifica permissão de visualização do módulo
+      if (!PluginNextoolPermissionManager::canViewModule('aiassist')) {
+         echo '<div class="alert alert-warning">' . __('Você não tem permissão para visualizar este módulo.', 'nextool') . '</div>';
+         return false;
+      }
+
       if (!($item instanceof Ticket)) {
          return false;
       }
