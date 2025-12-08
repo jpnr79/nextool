@@ -29,7 +29,7 @@ function plugin_version_nextool() {
       'license'        => 'GPLv3+',
       'author'         => 'Richard Loureiro - linkedin.com/in/richard-ti',
       'homepage'       => 'https://ritech.site',
-      'minGlpiVersion' => '11.0.0',
+      'requirements'   => ['glpi' => ['min' => '11.0', 'max' => '12.0']],
    ];
 }
 
