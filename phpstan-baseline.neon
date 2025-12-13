@@ -1,0 +1,313 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined static method Session\:\:validateCSRF\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: ajax/module_action.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 28
+			path: front/config.form.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: front/config.form.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: front/config.save.php
+
+		-
+			message: '#^Call to static method getConfigurationValues\(\) on an unknown class Config\.$#'
+			identifier: class.notFound
+			count: 1
+			path: front/config.save.php
+
+		-
+			message: '#^Call to static method setConfigurationValues\(\) on an unknown class Config\.$#'
+			identifier: class.notFound
+			count: 5
+			path: front/config.save.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: front/contact.form.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: front/module_data.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 5
+			path: hook.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logError\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: inc/basemodule.class.php
+
+		-
+			message: '#^Call to static method getConfigurationValues\(\) on an unknown class Config\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/config.class.php
+
+		-
+			message: '#^Call to static method setConfigurationValues\(\) on an unknown class Config\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/config.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 9
+			path: inc/configaudit.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/distributionclient.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 18
+			path: inc/licensevalidator.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/logmaintenance.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 12
+			path: inc/moduleaudit.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: inc/modulecardhelper.class.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/modulecardhelper.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: inc/modulemanager.class.php
+
+		-
+			message: '#^Access to static property \$rightname on an unknown class Config\.$#'
+			identifier: class.notFound
+			count: 2
+			path: inc/permissionmanager.class.php
+
+		-
+			message: '#^Call to an undefined static method ProfileRight\:\:deleteProfileRights\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/permissionmanager.class.php
+
+		-
+			message: '#^Call to an undefined method PluginNextoolProfile\:\:can\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: inc/profile.class.php
+
+		-
+			message: '#^Call to an undefined method PluginNextoolProfile\:\:displayRightsChoiceMatrix\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: inc/profile.class.php
+
+		-
+			message: '#^Call to an undefined static method PluginNextoolProfile\:\:getFormURL\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/profile.class.php
+
+		-
+			message: '#^Call to an undefined static method Profile\:\:getRights\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: inc/profile.class.php
+
+		-
+			message: '#^Class Config not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: inc/setup.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 11
+			path: inc/validationattempt.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: modules/aiassist/ajax/aiassist.action.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/ajax/aiassist.action.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:validateCSRF\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/ajax/aiassist.action.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/ajax/aiassist.action.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:convDate\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: modules/aiassist/front/aiassist.config.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 9
+			path: modules/aiassist/front/aiassist.config.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: modules/aiassist/front/aiassist.config.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/front/aiassist.test.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 11
+			path: modules/aiassist/front/aiassist.ticket.php
+
+		-
+			message: '#^Call to an undefined static method Session\:\:getNewCSRFToken\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/front/aiassist.ticket.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:convDate\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Call to an undefined static method Html\:\:entities_deep\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 6
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:slugify\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Caught class GuzzleHttp\\Exception\\RequestException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#1 \$settings \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Instantiated class GuzzleHttp\\Client not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: modules/aiassist/inc/aiassist.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: modules/aiassist/inc/providers/openaiprovider.class.php
+
+		-
+			message: '#^Caught class GuzzleHttp\\Exception\\RequestException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: modules/aiassist/inc/providers/openaiprovider.class.php
+
+		-
+			message: '#^Instantiated class GuzzleHttp\\Client not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: modules/aiassist/inc/providers/openaiprovider.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: modules/aiassist/inc/services/replyservice.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: modules/aiassist/inc/services/sentimentservice.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 3
+			path: modules/aiassist/inc/services/summaryservice.class.php
+
+		-
+			message: '#^Call to an undefined static method Toolbox\:\:logInFile\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: setup.php
