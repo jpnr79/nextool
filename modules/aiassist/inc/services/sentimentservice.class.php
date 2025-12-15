@@ -50,8 +50,8 @@ class PluginNextoolAiassistSentimentService {
       }
 
       // 1. Dados básicos (Título e Descrição)
-      $title = trim((string)($ticket->fields['name'] ?? ''));
-      $description = $this->normalizeTicketDescription($ticket->fields['content'] ?? '');
+      $title = trim((string)(($ticket->fields['name'] ?? '')));
+      $description = $this->normalizeTicketDescription(($ticket->fields['content'] ?? ''));
 
       // 2. Histórico recente do solicitante (últimas 5 interações públicas)
       $requesterUpdates = [];

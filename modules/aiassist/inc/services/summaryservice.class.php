@@ -134,8 +134,8 @@ class PluginNextoolAiassistSummaryService {
     */
    private function buildSummaryPrompt(Ticket $ticket, $contextText) {
       $ticketId = (int)$ticket->getID();
-      $priority = $ticket->fields['priority'] ?? '';
-      $category = $ticket->fields['itilcategories_id'] ?? '';
+      $priority = ($ticket->fields['priority'] ?? '');
+      $category = ($ticket->fields['itilcategories_id'] ?? '');
 
       $metadata = sprintf(
          "Chamado #%d | Prioridade: %s | Categoria: %s",

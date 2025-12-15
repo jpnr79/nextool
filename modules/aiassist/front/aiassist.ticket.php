@@ -110,8 +110,8 @@ $sentimentDisabledMsg = $sentimentEnabled
    ? $module->getFeatureBlockReason(PluginNextoolAiassist::FEATURE_SENTIMENT, $ticketId, $userId)
    : __('A funcionalidade de análise de sentimento está desabilitada nas configurações do módulo.', 'nextool');
 
-$ticketTitle = trim((string)($ticket->fields['name'] ?? ''));
-$descriptionText = plugin_nextool_aiassist_clean_initial_description($ticket->fields['content'] ?? '');
+$ticketTitle = trim((string)(($ticket->fields['name'] ?? '')));
+$descriptionText = plugin_nextool_aiassist_clean_initial_description(($ticket->fields['content'] ?? ''));
 $descriptionDisplay = $descriptionText !== '' ? nl2br(Html::entities_deep($descriptionText)) : '';
 $sentimentSlug = $sentimentLabel ? plugin_nextool_aiassist_slug($sentimentLabel) : '';
 ?>

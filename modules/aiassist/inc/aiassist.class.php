@@ -2395,14 +2395,14 @@ JS;
       $parts[] = sprintf(
          "Chamado #%d - %s\nStatus: %s | Prioridade: %s | Solicitante: %s",
          $ticketId,
-         $ticket->fields['name'] ?? '',
-         $ticket->fields['status'] ?? '',
-         $ticket->fields['priority'] ?? '',
+         ($ticket->fields['name'] ?? ''),
+         ($ticket->fields['status'] ?? ''),
+         ($ticket->fields['priority'] ?? ''),
          $this->getUserDisplayName($ticket->fields['users_id_recipient'] ?? 0)
       );
 
-      if (!empty($ticket->fields['content'] ?? '')) {
-         $parts[] = "Descrição inicial:\n" . strip_tags($ticket->fields['content'] ?? '');
+      if (!empty(($ticket->fields['content'] ?? ''))) {
+         $parts[] = "Descrição inicial:\n" . strip_tags(($ticket->fields['content'] ?? ''));
       }
 
       $followupsText = [];
