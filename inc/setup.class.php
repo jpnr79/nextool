@@ -37,7 +37,7 @@ class PluginNextoolSetup extends CommonGLPI {
     * Exibe conteúdo da aba
     * Inclui o formulário de configuração do plugin
     */
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
+   public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0): bool {
       if ($item instanceof Config) {
          include GLPI_ROOT . '/plugins/nextool/front/config.form.php';
       }
