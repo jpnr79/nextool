@@ -1818,7 +1818,7 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
          $fieldStylePrinted = true;
       }
 
-      $endpoint = Plugin::getWebDir('nextool') . '/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
+      $endpoint = '/plugins/nextool/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
       $quickMessages = [
          'processing'        => __('Processando...', 'nextool'),
          'generic_error'     => __('Não foi possível concluir a análise.', 'nextool'),
@@ -2055,7 +2055,7 @@ JS;
          return '';
       }
 
-      $endpoint = Plugin::getWebDir('nextool') . '/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
+      $endpoint = '/plugins/nextool/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
 
       $messages = [
          'label'            => __('Resumo (AI)', 'nextool'),

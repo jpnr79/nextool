@@ -37,7 +37,7 @@ if (file_exists(GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php')) {
    }
 }
 
-$endpoint = Plugin::getWebDir('nextool') . '/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
+$endpoint = '/plugins/nextool/ajax/module_ajax.php?module=aiassist&file=aiassist.action.php';
 
 $messages = [
    'summary_label'    => __('Resumo (AI)', 'nextool'),

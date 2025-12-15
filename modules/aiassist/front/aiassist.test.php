@@ -126,7 +126,7 @@ if (!empty($response)) {
 }
 
 // Formulário de teste - action corrigida para o roteador
-$formAction = Plugin::getWebDir('nextool') . '/front/modules.php?module=aiassist&file=aiassist.test.php';
+$formAction = '/plugins/nextool/front/modules.php?module=aiassist&file=aiassist.test.php';
 echo '<form method="post" action="' . $formAction . '">';
 echo '<input type="hidden" name="_glpi_csrf_token" value="' . Session::getNewCSRFToken() . '">';
 
@@ -142,7 +142,7 @@ echo '<button type="submit" class="btn btn-primary">';
 echo '<i class="ti ti-send me-1"></i>' . __('Enviar Teste', 'nextool');
 echo '</button>';
 
-echo '<a href="' . Plugin::getWebDir('nextool') . '/front/modules.php?module=aiassist&file=aiassist.config.php" class="btn btn-secondary ms-2">';
+echo '<a href="/plugins/nextool/front/modules.php?module=aiassist&file=aiassist.config.php" class="btn btn-secondary ms-2">';
 echo '<i class="ti ti-arrow-left me-1"></i>' . __('Voltar', 'nextool');
 echo '</a>';
 
