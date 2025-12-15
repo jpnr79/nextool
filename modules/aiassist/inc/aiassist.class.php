@@ -2401,8 +2401,8 @@ JS;
          $this->getUserDisplayName($ticket->fields['users_id_recipient'] ?? 0)
       );
 
-      if (!empty($ticket->fields['content'])) {
-         $parts[] = "Descrição inicial:\n" . strip_tags($ticket->fields['content']);
+      if (!empty($ticket->fields['content'] ?? '')) {
+         $parts[] = "Descrição inicial:\n" . strip_tags($ticket->fields['content'] ?? '');
       }
 
       $followupsText = [];
