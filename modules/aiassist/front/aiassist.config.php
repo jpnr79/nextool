@@ -119,7 +119,7 @@ $tabs = [
 ?>
 
 <div class="container-fluid mt-3 mb-4">
-   <form method="post" action="<?php echo Plugin::getWebDir('nextool') . '/front/modules.php?module=aiassist&file=aiassist.config.php&section=' . urlencode($activeSection); ?>" id="aiassistConfigForm">
+   <form method="post" action="<?php echo '/plugins/nextool/front/modules.php?module=aiassist&file=aiassist.config.php&section=' . urlencode($activeSection); ?>" id="aiassistConfigForm">
       <?php
          echo Html::hidden('_glpi_csrf_token', ['value' => $csrf]);
          echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']);
@@ -576,7 +576,7 @@ $tabs = [
                   <i class="ti ti-device-floppy me-1"></i>
                   <?php echo __('Salvar configurações', 'nextool'); ?>
                </button>
-               <a href="<?php echo Plugin::getWebDir('nextool'); ?>/front/modules.php?module=aiassist&file=aiassist.test.php" class="btn btn-outline-success">
+               <a href="<?php echo '/plugins/nextool/front/modules.php?module=aiassist&file=aiassist.test.php'; ?>" class="btn btn-outline-success">
                   <i class="ti ti-plug-connected me-1"></i>
                   <?php echo __('Testar conexão', 'nextool'); ?>
                </a>

@@ -587,7 +587,7 @@ foreach ($tabsRegistry as $key => $meta) {
                                  <?php if ($canManageAdminTabs): ?>
                                     <form method="post"
                                           class="d-flex flex-column gap-2 align-items-stretch"
-                                          action="<?php echo Plugin::getWebDir('nextool') . '/front/config.save.php'; ?>">
+                                          action="<?php echo '/plugins/nextool/front/config.save.php'; ?>">
                                        <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
                                        <?php echo Html::hidden('action', ['value' => 'accept_policies']); ?>
                                        <?php echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']); ?>
@@ -692,7 +692,7 @@ foreach ($tabsRegistry as $key => $meta) {
 
         <!-- TAB 2: Licenças e Status -->
         <div class="tab-pane fade" id="rt-tab-licenca" role="tabpanel" aria-labelledby="rt-tab-licenca-link">
-           <form method="post" action="<?php echo Plugin::getWebDir('nextool') . '/front/config.save.php'; ?>" id="configForm">
+           <form method="post" action="<?php echo '/plugins/nextool/front/config.save.php'; ?>" id="configForm">
               <?php echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken()]); ?>
               <?php echo Html::hidden('forcetab', ['value' => 'PluginNextoolSetup$1']); ?>
               <div class="d-flex flex-column gap-3">
@@ -996,7 +996,7 @@ foreach ($tabsRegistry as $key => $meta) {
                </div>
                <div class="card-body">
                   <form id="nextool-contact-form"
-                        action="<?php echo Plugin::getWebDir('nextool') . '/front/contact.form.php'; ?>"
+                        action="<?php echo '/plugins/nextool/front/contact.form.php'; ?>"
                         method="post"
                         class="needs-validation"
                         novalidate>
