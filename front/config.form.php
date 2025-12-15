@@ -45,7 +45,7 @@ if ($distributionClientIdentifier !== '') {
 }
 
 $distributionConfigured = $distributionBaseUrl !== '' && $distributionClientIdentifier !== '' && $distributionClientSecret !== '';
-$configSaveUrl = Plugin::getWebDir('nextool') . '/front/config.save.php';
+$configSaveUrl = '/plugins/nextool/front/config.save.php';
 
 // Configuração de licença (tabela específica)
 require_once GLPI_ROOT . '/plugins/nextool/inc/licenseconfig.class.php';
@@ -344,7 +344,7 @@ foreach ($allModuleKeys as $moduleKey) {
         'catalog_is_enabled'      => $catalogIsEnabled,
         'update_available'        => $updateAvailable,
         'upgrade_url'             => 'https://nextoolsolutions.ai',
-         'data_url'                => Plugin::getWebDir('nextool') . '/front/module_data.php?module=' . urlencode($moduleKey),
+         'data_url'                => '/plugins/nextool/front/module_data.php?module=' . urlencode($moduleKey),
          'config_url'              => $configUrl,
          'show_config_button'      => $isInstalled && $moduleHasConfig && $moduleCanView,
          'can_manage_admin_tabs'   => $canManageAdminTabs,
