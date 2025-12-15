@@ -249,7 +249,7 @@ class PluginNextoolModuleCardHelper {
       bool $disabled = false,
       ?string $confirmMessage = null
    ): string {
-      $actionUrl = Plugin::getWebDir('nextool') . '/ajax/module_action.php';
+      $actionUrl = '/plugins/nextool/ajax/module_action.php';
       $token = Session::getNewCSRFToken();
 
       $fields = '';

@@ -328,7 +328,7 @@ abstract class PluginNextoolBaseModule {
       $relativePath = str_replace($pluginPath, '', $modulePath);
       $relativePath = trim($relativePath, '/');
       
-      return Plugin::getWebDir('nextool') . '/' . $relativePath;
+      return '/plugins/nextool/' . $relativePath;
    }
 
    /**
@@ -345,7 +345,7 @@ abstract class PluginNextoolBaseModule {
       
       // Usa roteador central para evitar problemas com Symfony
       // Formato: /plugins/nextool/front/modules.php?module=[key]&file=[filename]
-      return Plugin::getWebDir('nextool') . '/front/modules.php?module=' . urlencode($moduleKey) . '&file=' . urlencode($filename);
+      return '/plugins/nextool/front/modules.php?module=' . urlencode($moduleKey) . '&file=' . urlencode($filename);
    }
 
    /**
@@ -363,10 +363,10 @@ abstract class PluginNextoolBaseModule {
       // Detecta estrutura
       if (is_dir($modulePath . '/ajax')) {
          // Nova estrutura: modules/[nome]/ajax/[arquivo]
-         return Plugin::getWebDir('nextool') . '/' . $relativePath . '/ajax/' . $filename;
+         return '/plugins/nextool/' . $relativePath . '/ajax/' . $filename;
       } else {
          // Estrutura antiga: ajax/modules/[arquivo]
-         return Plugin::getWebDir('nextool') . '/ajax/modules/' . $filename;
+         return '/plugins/nextool/ajax/modules/' . $filename;
       }
    }
 
