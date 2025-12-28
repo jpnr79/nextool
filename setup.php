@@ -109,10 +109,63 @@ function plugin_init_nextool() {
  * Verifica pré-requisitos
  */
 function plugin_nextool_check_prerequisites() {
-   if (version_compare(GLPI_VERSION, '11.0', 'lt')) {
-      echo "Este plugin requer GLPI >= 11.0";
+   $min_version = '11.0';
+   $max_version = '12.0';
+   $glpi_version = null;
+   $glpi_root = defined('GLPI_ROOT') ? GLPI_ROOT : '/var/www/glpi';
+
+   // Try GLPI 11+ version directory
+   $version_dir = rtrim($glpi_root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'version';
+   if (is_dir($version_dir)) {
+      $files = scandir($version_dir, SCANDIR_SORT_DESCENDING);
+      foreach ($files as $file) {
+         if ($file[0] !== '.' && preg_match('/^\d+\.\d+(?:\.\d+)?$/', $file)) {
+            $glpi_version = $file;
+            break;
+         }
+      }
+   }
+
+   // Fallback for older GLPI installations
+   if ($glpi_version === null && defined('GLPI_VERSION')) {
+      $glpi_version = GLPI_VERSION;
+   }
+
+   // Try to load Toolbox for logging if not already loaded
+   if (!class_exists('Toolbox') && file_exists(rtrim($glpi_root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Toolbox.php')) {
+      require_once rtrim($glpi_root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Toolbox.php';
+   }
+
+   if ($glpi_version === null) {
+      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+         Toolbox::logInFile('plugin_nextool', '[setup.php:plugin_nextool_check_prerequisites] ERROR: GLPI version not detected.');
+      }
+      echo "Não foi possível detectar a versão do GLPI. Verifique os logs.";
       return false;
    }
+
+   if (version_compare($glpi_version, $min_version, '<')) {
+      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+         Toolbox::logInFile('plugin_nextool', sprintf(
+            'ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is less than required minimum %s, user=%s',
+            $glpi_version, $min_version, $_SESSION['glpiname'] ?? 'unknown'
+         ));
+      }
+      echo "Este plugin requer GLPI >= {$min_version}";
+      return false;
+   }
+
+   if (version_compare($glpi_version, $max_version, '>')) {
+      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+         Toolbox::logInFile('plugin_nextool', sprintf(
+            'ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is greater than supported maximum %s, user=%s',
+            $glpi_version, $max_version, $_SESSION['glpiname'] ?? 'unknown'
+         ));
+      }
+      echo "Este plugin é suportado até GLPI < {$max_version}";
+      return false;
+   }
+
    return true;
 }
 
