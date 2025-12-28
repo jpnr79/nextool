@@ -78,11 +78,16 @@ class PluginNextoolLogMaintenance {
       }
 
       if ($affected > 0) {
-         Toolbox::logInFile('plugin_nextool', sprintf(
+         $__nextool_msg = sprintf(
             'LogMaintenance: removidos %d registros antigos (retention=%d dias)',
             $affected,
             $retentionDays
-         ));
+         );
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
       }
 
       return true;

@@ -505,7 +505,12 @@ abstract class PluginNextoolBaseModule {
       $sqlContent = file_get_contents($sqlPath);
       
       if ($sqlContent === false) {
-         Toolbox::logError("Nextool: Erro ao ler arquivo SQL: {$sqlPath}");
+         $__nextool_msg = "Nextool: Erro ao ler arquivo SQL: {$sqlPath}";
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logError')) {
+            Toolbox::logError($__nextool_msg);
+         } else {
+            error_log($__nextool_msg);
+         }
          return false;
       }
 
@@ -530,7 +535,12 @@ abstract class PluginNextoolBaseModule {
          }
 
          if (!$DB->doQuery($command)) {
-            Toolbox::logError("Nextool: Erro ao executar SQL do módulo {$this->getModuleKey()}: " . $DB->error());
+            $__nextool_msg = "Nextool: Erro ao executar SQL do módulo {$this->getModuleKey()}: " . $DB->error();
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logError')) {
+               Toolbox::logError($__nextool_msg);
+            } else {
+               error_log($__nextool_msg);
+            }
             return false;
          }
       }

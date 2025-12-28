@@ -39,7 +39,12 @@ if (!function_exists('nextool_obtain_or_reuse_client_secret')) {
          if ($row && !empty($row['client_secret'])) {
             $secret = (string)$row['client_secret'];
             $reused = true;
-            Toolbox::logInFile('plugin_nextool', sprintf('HMAC reutilizado a partir do registro existente para %s.', $clientIdentifier));
+            $__nextool_msg = sprintf('HMAC reutilizado a partir do registro existente para %s.', $clientIdentifier);
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
          }
       }
 
@@ -380,10 +385,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'validate_license') {
          $manager = PluginNextoolModuleManager::getInstance();
          $manager->enforceFreeTierForPaidModules();
       } catch (Throwable $e) {
-         Toolbox::logInFile(
-            'plugin_nextool',
-            'Falha ao aplicar modo FREE após licença inválida: ' . $e->getMessage()
-         );
+         $__nextool_msg = 'Falha ao aplicar modo FREE após licença inválida: ' . $e->getMessage();
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
       }
    }
 
@@ -399,7 +406,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'validate_license') {
       'contract_active'   => $result['contract_active'] ?? null,
       'licenses_count'    => isset($result['licenses']) && is_array($result['licenses']) ? count($result['licenses']) : 0,
    ];
-   Toolbox::logInFile('plugin_nextool', 'Manual validation payload: ' . json_encode($logPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+   $__nextool_msg = 'Manual validation payload: ' . json_encode($logPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+   if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+      Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+   } else {
+      error_log('[plugin_nextool] ' . $__nextool_msg);
+   }
 
    PluginNextoolConfigAudit::log([
       'section' => 'validation',
