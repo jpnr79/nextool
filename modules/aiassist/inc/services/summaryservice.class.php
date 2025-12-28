@@ -7,6 +7,8 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+
 class PluginNextoolAiassistSummaryService {
 
    /** @var PluginNextoolAiassist */
@@ -29,7 +31,7 @@ class PluginNextoolAiassistSummaryService {
     * @return array
     */
    public function generate($ticketId, $userId, array $options = []) {
-      Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+      nextool_log('plugin_nextool_aiassist', sprintf(
          '[SUMMARY] Iniciando geração - Ticket #%d, User #%d',
          $ticketId,
          $userId
@@ -37,7 +39,7 @@ class PluginNextoolAiassistSummaryService {
       
       $ticket = new Ticket();
       if (!$ticket->getFromDB($ticketId)) {
-         Toolbox::logInFile('plugin_nextool_aiassist', "[SUMMARY] Ticket #$ticketId não encontrado");
+         nextool_log('plugin_nextool_aiassist', "[SUMMARY] Ticket #$ticketId não encontrado");
          return [
             'success' => false,
             'message' => __('Chamado não encontrado.', 'nextool'),
@@ -63,7 +65,7 @@ class PluginNextoolAiassistSummaryService {
          
          // Se já tem cache E não há novo followup, retornar cache
          if ($cachedSummary !== '' && $lastSummaryFollowupId === $currentLastFollowupId) {
-            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+            nextool_log('plugin_nextool_aiassist', sprintf(
                '[SUMMARY] Retornando resumo em cache (sem novos followups) - Ticket #%d',
                $ticketId
             ));

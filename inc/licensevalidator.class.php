@@ -792,7 +792,7 @@ class PluginNextoolLicenseValidator {
       if (function_exists('curl_init')) {
          $ch = curl_init();
          if ($ch === false) {
-            Toolbox::logInFile('plugin_nextool', 'LicenseValidator: curl_init() falhou ao preparar chamada para ' . $apiEndpoint);
+            nextool_log('plugin_nextool', 'LicenseValidator: curl_init() falhou ao preparar chamada para ' . $apiEndpoint);
             return null;
          }
 
@@ -825,10 +825,7 @@ class PluginNextoolLicenseValidator {
 
          if ($response === false) {
             $error = curl_error($ch);
-            Toolbox::logInFile(
-               'plugin_nextool',
-               'LicenseValidator: erro cURL ao chamar ' . $apiEndpoint . ' - ' . $error
-            );
+            nextool_log('plugin_nextool', 'LicenseValidator: erro cURL ao chamar ' . $apiEndpoint . ' - ' . $error);
             $httpCode = null;
             curl_close($ch);
             return null;
@@ -840,15 +837,12 @@ class PluginNextoolLicenseValidator {
             // Para evitar poluir os logs com HTML completo de páginas de erro do GLPI,
             // registramos apenas um resumo do body (primeiros caracteres em uma linha).
             $snippet = trim(preg_replace('/\s+/', ' ', substr($response, 0, 200)));
-            Toolbox::logInFile(
-               'plugin_nextool',
-               sprintf(
-                  'LicenseValidator: resposta HTTP %d de %s. Body (primeiros 200 chars): %s',
-                  $httpCode,
-                  $apiEndpoint,
-                  $snippet
-               )
-            );
+            nextool_log('plugin_nextool', sprintf(
+               'LicenseValidator: resposta HTTP %d de %s. Body (primeiros 200 chars): %s',
+               $httpCode,
+               $apiEndpoint,
+               $snippet
+            ));
             curl_close($ch);
             return null;
          }
@@ -857,10 +851,7 @@ class PluginNextoolLicenseValidator {
 
          $data = json_decode($response, true);
          if (!is_array($data)) {
-            Toolbox::logInFile(
-               'plugin_nextool',
-               'LicenseValidator: resposta JSON inválida de ' . $apiEndpoint . ' - Body: ' . substr($response, 0, 1000)
-            );
+            nextool_log('plugin_nextool', 'LicenseValidator: resposta JSON inválida de ' . $apiEndpoint . ' - Body: ' . substr($response, 0, 1000));
             return null;
          }
 
@@ -897,10 +888,7 @@ class PluginNextoolLicenseValidator {
       $responseTimeMs = (int)round(($end - $start) * 1000);
 
       if ($response === false) {
-         Toolbox::logInFile(
-            'plugin_nextool',
-            'LicenseValidator: file_get_contents() falhou ao chamar ' . $apiEndpoint
-         );
+         nextool_log('plugin_nextool', 'LicenseValidator: file_get_contents() falhou ao chamar ' . $apiEndpoint);
          $httpCode = null;
          return null;
       }
@@ -917,25 +905,19 @@ class PluginNextoolLicenseValidator {
 
       if ($httpCode !== null && ($httpCode < 200 || $httpCode >= 300)) {
          $snippet = trim(preg_replace('/\s+/', ' ', substr($response, 0, 200)));
-         Toolbox::logInFile(
-            'plugin_nextool',
-            sprintf(
-               'LicenseValidator: resposta HTTP %d (stream) de %s. Body (primeiros 200 chars): %s',
-               $httpCode,
-               $apiEndpoint,
-               $snippet
-            )
-         );
+         nextool_log('plugin_nextool', sprintf(
+            'LicenseValidator: resposta HTTP %d (stream) de %s. Body (primeiros 200 chars): %s',
+            $httpCode,
+            $apiEndpoint,
+            $snippet
+         ));
          return null;
       }
 
       $data = json_decode($response, true);
       if (!is_array($data)) {
          $snippet = trim(preg_replace('/\s+/', ' ', substr($response, 0, 200)));
-         Toolbox::logInFile(
-            'plugin_nextool',
-            'LicenseValidator: resposta JSON inválida (stream) de ' . $apiEndpoint . ' - Body (primeiros 200 chars): ' . $snippet
-         );
+         nextool_log('plugin_nextool', 'LicenseValidator: resposta JSON inválida (stream) de ' . $apiEndpoint . ' - Body (primeiros 200 chars): ' . $snippet);
          return null;
       }
 
@@ -1075,15 +1057,9 @@ class PluginNextoolLicenseValidator {
       $warnings      = isset($state['warnings']) && is_array($state['warnings']) ? $state['warnings'] : [];
 
       if ($contractActive === false) {
-         Toolbox::logInFile(
-            'plugin_nextool',
-            sprintf('ALERTA: contrato da licença está inativo (origin=%s, plan=%s)', $origin, $plan ?? 'UNKNOWN')
-         );
+         nextool_log('plugin_nextool', sprintf('ALERTA: contrato da licença está inativo (origin=%s, plan=%s)', $origin, $plan ?? 'UNKNOWN'));
       } elseif (!empty($warnings) && in_array('license_expired', $warnings, true)) {
-         Toolbox::logInFile(
-            'plugin_nextool',
-            sprintf('Aviso: licença expirada, contrato ativo (origin=%s, status=%s)', $origin, $status ?? 'UNKNOWN')
-         );
+         nextool_log('plugin_nextool', sprintf('Aviso: licença expirada, contrato ativo (origin=%s, status=%s)', $origin, $status ?? 'UNKNOWN'));
       }
    }
 
@@ -1092,12 +1068,9 @@ class PluginNextoolLicenseValidator {
          $manager = PluginNextoolModuleManager::getInstance();
          $manager->enforceFreeTierForPaidModules();
       } catch (Throwable $e) {
-         Toolbox::logInFile('plugin_nextool', 'LicenseValidator: falha ao aplicar modo FREE - ' . $e->getMessage());
+         nextool_log('plugin_nextool', 'LicenseValidator: falha ao aplicar modo FREE - ' . $e->getMessage());
       }
 
-      Toolbox::logInFile(
-         'plugin_nextool',
-         sprintf('LicenseValidator: %s. Ambiente operará em modo FREE.', $reason)
-      );
+      nextool_log('plugin_nextool', sprintf('LicenseValidator: %s. Ambiente operará em modo FREE.', $reason));
    }
 }

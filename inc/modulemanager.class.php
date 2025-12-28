@@ -846,7 +846,12 @@ class PluginNextoolModuleManager {
          try {
             $customPurgeSuccess = (bool) $module->purgeData();
          } catch (Exception $e) {
-            Toolbox::logInFile('plugin_nextool', sprintf('Falha ao purgar dados do módulo %s: %s', $moduleKey, $e->getMessage()));
+            $__nextool_msg = sprintf('Falha ao purgar dados do módulo %s: %s', $moduleKey, $e->getMessage());
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
             $customPurgeSuccess = false;
          }
       }

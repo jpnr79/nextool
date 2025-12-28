@@ -12,6 +12,8 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+
 class PluginNextoolAiassistSentimentService {
 
    /** @var PluginNextoolAiassist */
@@ -34,7 +36,7 @@ class PluginNextoolAiassistSentimentService {
     * @return array
     */
    public function analyze($ticketId, $userId = 0, array $options = []) {
-      Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+      nextool_log('plugin_nextool_aiassist', sprintf(
          '[SENTIMENT] Iniciando análise aprimorada - Ticket #%d, User #%d',
          $ticketId,
          $userId
@@ -42,7 +44,7 @@ class PluginNextoolAiassistSentimentService {
       
       $ticket = new Ticket();
       if (!$ticket->getFromDB($ticketId)) {
-         Toolbox::logInFile('plugin_nextool_aiassist', "[SENTIMENT] Ticket #$ticketId não encontrado");
+         nextool_log('plugin_nextool_aiassist', "[SENTIMENT] Ticket #$ticketId não encontrado");
          return [
             'success' => false,
             'message' => __('Chamado não encontrado.', 'nextool'),
@@ -198,7 +200,7 @@ JSON;
             $response['parsed'] = $decoded;
             $response['analysis'] = $decoded;
             
-            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+            nextool_log('plugin_nextool_aiassist', sprintf(
                '[SENTIMENT] ✅ Sucesso - Ticket #%d, Sentimento: %s, Urgência: %s',
                $ticketId,
                $decoded['sentiment_label'] ?? 'N/A',
@@ -207,7 +209,7 @@ JSON;
          } else {
             $response['success'] = false;
             $response['error'] = __('Não foi possível interpretar a resposta da IA.', 'nextool');
-            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+            nextool_log('plugin_nextool_aiassist', sprintf(
                '[SENTIMENT] ❌ Erro ao interpretar resposta - Ticket #%d. Conteúdo bruto: %s',
                $ticketId,
                mb_substr($rawContent, 0, 500)

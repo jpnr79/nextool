@@ -56,11 +56,16 @@ class PluginNextoolDistributionClient {
       curl_close($ch);
 
       if ($response === false || $httpCode >= 300) {
-         Toolbox::logInFile('plugin_nextool', sprintf(
+         $__nextool_msg = sprintf(
             'Falha ao solicitar client_secret no ContainerAPI (HTTP %s): %s',
             $httpCode,
             $err
-         ));
+         );
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
          return null;
       }
 

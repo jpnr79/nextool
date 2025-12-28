@@ -7,6 +7,8 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+
 class PluginNextoolAiassistReplyService {
 
    /** @var PluginNextoolAiassist */
@@ -29,7 +31,7 @@ class PluginNextoolAiassistReplyService {
     * @return array
     */
    public function suggest($ticketId, $userId, array $options = []) {
-      Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+      nextool_log('plugin_nextool_aiassist', sprintf(
          '[REPLY] Iniciando sugestão - Ticket #%d, User #%d',
          $ticketId,
          $userId
@@ -37,7 +39,7 @@ class PluginNextoolAiassistReplyService {
       
       $ticket = new Ticket();
       if (!$ticket->getFromDB($ticketId)) {
-         Toolbox::logInFile('plugin_nextool_aiassist', "[REPLY] Ticket #$ticketId não encontrado");
+         nextool_log('plugin_nextool_aiassist', "[REPLY] Ticket #$ticketId não encontrado");
          return [
             'success' => false,
             'message' => __('Chamado não encontrado.', 'nextool'),
@@ -66,7 +68,7 @@ class PluginNextoolAiassistReplyService {
          
          // Se já tem cache E não há novo followup, retornar cache
          if ($cachedReply !== '' && $lastReplyFollowupId === $currentLastFollowupId) {
-            Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+            nextool_log('plugin_nextool_aiassist', sprintf(
                '[REPLY] Retornando sugestão em cache (sem novos followups) - Ticket #%d',
                $ticketId
             ));

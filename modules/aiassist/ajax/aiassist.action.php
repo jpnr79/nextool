@@ -44,7 +44,8 @@ if (!function_exists('plugin_nextool_aiassist_render_summary_html')) {
    }
 }
 
-Toolbox::logInFile('plugin_nextool_aiassist', '[ENDPOINT] Requisição AJAX recebida - Action: ' . ($_POST['action'] ?? 'não definido'));
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+nextool_log('plugin_nextool_aiassist', '[ENDPOINT] Requisição AJAX recebida - Action: ' . ($_POST['action'] ?? 'não definido'));
 
 header('Content-Type: application/json; charset=UTF-8');
 
