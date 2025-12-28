@@ -699,7 +699,12 @@ class PluginNextoolModuleManager {
          $client = new PluginNextoolDistributionClient($baseUrl, $clientIdentifier, $clientSecret);
          $result = $client->downloadModule($moduleKey);
       } catch (Exception $e) {
-         Toolbox::logInFile('plugin_nextool', sprintf('Falha ao baixar módulo %s: %s', $moduleKey, $e->getMessage()));
+         $__nextool_msg = sprintf('Falha ao baixar módulo %s: %s', $moduleKey, $e->getMessage());
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
          return [
             'success' => false,
             'message' => sprintf(__('Falha ao baixar módulo remoto: %s', 'nextool'), $e->getMessage()),
@@ -707,7 +712,12 @@ class PluginNextoolModuleManager {
       }
 
       $details = sprintf('Módulo %s v%s baixado do ContainerAPI.', $moduleKey, $result['version'] ?? 'unknown');
-      Toolbox::logInFile('plugin_nextool', $details);
+      $__nextool_msg = $details;
+      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+         Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+      } else {
+         error_log('[plugin_nextool] ' . $__nextool_msg);
+      }
       $this->discoverModules(true);
       $this->syncAvailableVersion($moduleKey, $result['version'] ?? null);
 
@@ -881,15 +891,17 @@ class PluginNextoolModuleManager {
 
          // GLPI 11: queries diretas devem usar doQuery() ao invés de query/queryOrDie()
          if (!$DB->doQuery($sql)) {
-            Toolbox::logInFile(
-               'plugin_nextool',
-               sprintf(
-                  'Falha ao remover tabela de dados do módulo %s (%s): %s',
-                  $moduleKey,
-                  $table,
-                  method_exists($DB, 'error') ? $DB->error() : 'erro desconhecido'
-               )
+            $__nextool_msg = sprintf(
+               'Falha ao remover tabela de dados do módulo %s (%s): %s',
+               $moduleKey,
+               $table,
+               method_exists($DB, 'error') ? $DB->error() : 'erro desconhecido'
             );
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
             continue;
          }
 

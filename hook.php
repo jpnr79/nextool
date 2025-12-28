@@ -40,21 +40,33 @@ function plugin_nextool_install() {
          try {
             PluginNextoolConfig::getConfig();
          } catch (Exception $e) {
-            Toolbox::logInFile('plugin_nextool', "Erro ao inicializar client_identifier durante install: " . $e->getMessage());
+            $__nextool_msg = "Erro ao inicializar client_identifier durante install: " . $e->getMessage();
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
          }
       }
    }
 
-   try {
-      $manager = PluginNextoolModuleManager::getInstance();
-      $manager->refreshModules();
-      Toolbox::logInFile(
-         'plugin_nextool',
-         sprintf('Install health-check: %d módulos detectados após reinstalação.', count($manager->getAllModules()))
-      );
-   } catch (Throwable $e) {
-      Toolbox::logInFile('plugin_nextool', 'Install health-check falhou: ' . $e->getMessage());
-   }
+      try {
+         $manager = PluginNextoolModuleManager::getInstance();
+         $manager->refreshModules();
+         $__nextool_msg = sprintf('Install health-check: %d módulos detectados após reinstalação.', count($manager->getAllModules()));
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
+      } catch (Throwable $e) {
+         $__nextool_msg = 'Install health-check falhou: ' . $e->getMessage();
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool] ' . $__nextool_msg);
+         }
+      }
 
    PluginNextoolPermissionManager::installRights();
    PluginNextoolPermissionManager::syncModuleRights();
@@ -89,7 +101,12 @@ function plugin_nextool_uninstall() {
             try {
                $manager->uninstallModule($moduleKey);
             } catch (Throwable $e) {
-               Toolbox::logInFile('plugin_nextool', sprintf('Falha ao desinstalar módulo %s durante plugin_uninstall: %s', $moduleKey, $e->getMessage()));
+                  $__nextool_msg = sprintf('Falha ao desinstalar módulo %s durante plugin_uninstall: %s', $moduleKey, $e->getMessage());
+                  if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+                     Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+                  } else {
+                     error_log('[plugin_nextool] ' . $__nextool_msg);
+                  }
             }
          }
       }
@@ -118,7 +135,12 @@ function plugin_nextool_uninstall() {
       nextool_delete_dir($tmpRemoteDir);
    }
 
-   Toolbox::logInFile('plugin_nextool', 'Plugin desinstalado: módulos removidos, caches limpos e diretórios temporários apagados.');
+   $__nextool_msg = 'Plugin desinstalado: módulos removidos, caches limpos e diretórios temporários apagados.';
+   if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+      Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+   } else {
+      error_log('[plugin_nextool] ' . $__nextool_msg);
+   }
 
    PluginNextoolPermissionManager::removeRights();
 

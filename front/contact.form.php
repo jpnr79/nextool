@@ -152,7 +152,12 @@ try {
    ]);
 } catch (Throwable $e) {
    $rawMessage = (string)$e->getMessage();
-   Toolbox::logInFile('plugin_nextool', 'Falha ao enviar contato para ContainerAPI: ' . $rawMessage);
+   $__nextool_msg = 'Falha ao enviar contato para ContainerAPI: ' . $rawMessage;
+   if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+      Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+   } else {
+      error_log('[plugin_nextool] ' . $__nextool_msg);
+   }
 
    $userMessage = __('Não foi possível enviar seu contato. Tente novamente em instantes.', 'nextool');
    if (stripos($rawMessage, 'Contato já enviado recentemente') !== false

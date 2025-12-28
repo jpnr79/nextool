@@ -30,6 +30,16 @@ require_once GLPI_ROOT . '/plugins/nextool/inc/logmaintenance.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/validationattempt.class.php';
 
+if (!function_exists('nextool_log')) {
+   function nextool_log(string $file, string $message): void {
+      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+         Toolbox::logInFile($file, $message);
+      } else {
+         error_log('[' . $file . '] ' . $message);
+      }
+   }
+}
+
 class PluginNextoolLicenseValidator {
 
    /**
@@ -650,7 +660,7 @@ class PluginNextoolLicenseValidator {
 
       $body = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
       if ($body === false) {
-         Toolbox::logInFile('plugin_nextool', 'LicenseValidator: falha ao gerar payload JSON para ContainerAPI.');
+            nextool_log('plugin_nextool', 'LicenseValidator: falha ao gerar payload JSON para ContainerAPI.');
          return null;
       }
 
@@ -666,7 +676,7 @@ class PluginNextoolLicenseValidator {
       if (function_exists('curl_init')) {
          $ch = curl_init($apiEndpoint);
          if ($ch === false) {
-            Toolbox::logInFile('plugin_nextool', 'LicenseValidator: curl_init() falhou ao chamar ContainerAPI.');
+            nextool_log('plugin_nextool', 'LicenseValidator: curl_init() falhou ao chamar ContainerAPI.');
             return null;
          }
 
@@ -686,7 +696,7 @@ class PluginNextoolLicenseValidator {
          $responseTimeMs = (int) round((microtime(true) - $start) * 1000);
 
          if ($response === false) {
-            Toolbox::logInFile('plugin_nextool', 'LicenseValidator: falha cURL ao chamar ContainerAPI - ' . $error);
+            nextool_log('plugin_nextool', 'LicenseValidator: falha cURL ao chamar ContainerAPI - ' . $error);
             return null;
          }
 
@@ -694,7 +704,7 @@ class PluginNextoolLicenseValidator {
          if (!is_array($decoded)) {
             $snippet = trim(preg_replace('/\s+/', ' ', substr($response, 0, 500)));
             $jsonError = json_last_error_msg();
-            Toolbox::logInFile('plugin_nextool', sprintf(
+            nextool_log('plugin_nextool', sprintf(
                'LicenseValidator: resposta JSON inválida do ContainerAPI (HTTP %d). JSON Error: %s. Response (primeiros 500 chars): %s',
                $httpCode ?: 'unknown',
                $jsonError,
@@ -728,7 +738,7 @@ class PluginNextoolLicenseValidator {
       $responseTimeMs = (int) round((microtime(true) - $start) * 1000);
 
       if ($response === false) {
-         Toolbox::logInFile('plugin_nextool', 'LicenseValidator: stream falhou ao chamar ContainerAPI.');
+            nextool_log('plugin_nextool', 'LicenseValidator: stream falhou ao chamar ContainerAPI.');
          return null;
       }
 
@@ -745,7 +755,7 @@ class PluginNextoolLicenseValidator {
       if (!is_array($decoded)) {
          $snippet = trim(preg_replace('/\s+/', ' ', substr($response, 0, 500)));
          $jsonError = json_last_error_msg();
-         Toolbox::logInFile('plugin_nextool', sprintf(
+         nextool_log('plugin_nextool', sprintf(
             'LicenseValidator: resposta JSON inválida (stream) do ContainerAPI (HTTP %d). JSON Error: %s. Response (primeiros 500 chars): %s',
             $httpCode ?: 'unknown',
             $jsonError,
