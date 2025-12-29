@@ -700,8 +700,8 @@ class PluginNextoolModuleManager {
          $result = $client->downloadModule($moduleKey);
       } catch (Exception $e) {
          $__nextool_msg = sprintf('Falha ao baixar módulo %s: %s', $moduleKey, $e->getMessage());
-         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         if (function_exists('nextool_log')) {
+            nextool_log('plugin_nextool', $__nextool_msg);
          } else {
             error_log('[plugin_nextool] ' . $__nextool_msg);
          }
@@ -713,8 +713,8 @@ class PluginNextoolModuleManager {
 
       $details = sprintf('Módulo %s v%s baixado do ContainerAPI.', $moduleKey, $result['version'] ?? 'unknown');
       $__nextool_msg = $details;
-      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-         Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+      if (function_exists('nextool_log')) {
+         nextool_log('plugin_nextool', $__nextool_msg);
       } else {
          error_log('[plugin_nextool] ' . $__nextool_msg);
       }
