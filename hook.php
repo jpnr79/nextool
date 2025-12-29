@@ -45,8 +45,8 @@ function plugin_nextool_install() {
             PluginNextoolConfig::getConfig();
          } catch (Exception $e) {
             $__nextool_msg = "Erro ao inicializar client_identifier durante install: " . $e->getMessage();
-            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            if (function_exists('nextool_log')) {
+               nextool_log('plugin_nextool', $__nextool_msg);
             } else {
                error_log('[plugin_nextool] ' . $__nextool_msg);
             }

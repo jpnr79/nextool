@@ -402,8 +402,8 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
 
       if ($result === false) {
          $__nextool_msg = '[SETTINGS] Falha ao salvar configurações para ' . $clientIdentifier . ' - ' . $DB->error();
-         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-            Toolbox::logInFile('plugin_nextool_aiassist', $__nextool_msg);
+         if (function_exists('nextool_log')) {
+            nextool_log('plugin_nextool_aiassist', $__nextool_msg);
          } else {
             error_log('[plugin_nextool_aiassist] ' . $__nextool_msg);
          }
@@ -782,8 +782,8 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
          // GLPI 11: evitar DB->query() direto, usar doQuery() e logar eventual erro
          if (!$DB->doQuery($query)) {
             $__nextool_msg = 'Erro ao criar tabela de histórico de configuração do aiassist: ' . (method_exists($DB, 'error') ? $DB->error() : 'erro desconhecido');
-            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            if (function_exists('nextool_log')) {
+               nextool_log('plugin_nextool', $__nextool_msg);
             } else {
                error_log('[plugin_nextool] ' . $__nextool_msg);
             }

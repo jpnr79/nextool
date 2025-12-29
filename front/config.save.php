@@ -40,8 +40,8 @@ if (!function_exists('nextool_obtain_or_reuse_client_secret')) {
             $secret = (string)$row['client_secret'];
             $reused = true;
             $__nextool_msg = sprintf('HMAC reutilizado a partir do registro existente para %s.', $clientIdentifier);
-            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            if (function_exists('nextool_log')) {
+               nextool_log('plugin_nextool', $__nextool_msg);
             } else {
                error_log('[plugin_nextool] ' . $__nextool_msg);
             }
@@ -386,8 +386,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'validate_license') {
          $manager->enforceFreeTierForPaidModules();
       } catch (Throwable $e) {
          $__nextool_msg = 'Falha ao aplicar modo FREE após licença inválida: ' . $e->getMessage();
-         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-            Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+         if (function_exists('nextool_log')) {
+            nextool_log('plugin_nextool', $__nextool_msg);
          } else {
             error_log('[plugin_nextool] ' . $__nextool_msg);
          }
@@ -407,8 +407,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'validate_license') {
       'licenses_count'    => isset($result['licenses']) && is_array($result['licenses']) ? count($result['licenses']) : 0,
    ];
    $__nextool_msg = 'Manual validation payload: ' . json_encode($logPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-   if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-      Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+   if (function_exists('nextool_log')) {
+      nextool_log('plugin_nextool', $__nextool_msg);
    } else {
       error_log('[plugin_nextool] ' . $__nextool_msg);
    }
