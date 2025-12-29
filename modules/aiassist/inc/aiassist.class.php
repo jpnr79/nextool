@@ -15,6 +15,8 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+
 class PluginNextoolAiassist extends PluginNextoolBaseModule {
 
    public const FEATURE_SUMMARY  = 'summary';
@@ -399,7 +401,12 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
       }
 
       if ($result === false) {
-         Toolbox::logInFile('plugin_nextool_aiassist', '[SETTINGS] Falha ao salvar configurações para ' . $clientIdentifier . ' - ' . $DB->error());
+         $__nextool_msg = '[SETTINGS] Falha ao salvar configurações para ' . $clientIdentifier . ' - ' . $DB->error();
+         if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+            Toolbox::logInFile('plugin_nextool_aiassist', $__nextool_msg);
+         } else {
+            error_log('[plugin_nextool_aiassist] ' . $__nextool_msg);
+         }
       }
 
       return $result !== false;
@@ -774,10 +781,12 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
 
          // GLPI 11: evitar DB->query() direto, usar doQuery() e logar eventual erro
          if (!$DB->doQuery($query)) {
-            Toolbox::logInFile(
-               'plugin_nextool',
-               'Erro ao criar tabela de histórico de configuração do aiassist: ' . (method_exists($DB, 'error') ? $DB->error() : 'erro desconhecido')
-            );
+            $__nextool_msg = 'Erro ao criar tabela de histórico de configuração do aiassist: ' . (method_exists($DB, 'error') ? $DB->error() : 'erro desconhecido');
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
          }
       }
    }
@@ -904,7 +913,7 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
          $status = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 0;
          $body   = $e->hasResponse() ? (string)$e->getResponse()->getBody() : $e->getMessage();
 
-         Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+         nextool_log('plugin_nextool_aiassist', sprintf(
             '[TEST] Falha ao testar OpenAI: %s',
             $body
          ));
@@ -918,7 +927,7 @@ class PluginNextoolAiassist extends PluginNextoolBaseModule {
             ]
          ];
       } catch (\Exception $e) {
-         Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+         nextool_log('plugin_nextool_aiassist', sprintf(
             '[TEST] Erro inesperado: %s',
             $e->getMessage()
          ));

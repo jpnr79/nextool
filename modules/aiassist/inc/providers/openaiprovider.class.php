@@ -8,6 +8,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 require_once __DIR__ . '/providerinterface.class.php';
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
 
 class PluginNextoolAiassistOpenAiProvider implements PluginNextoolAiassistProviderInterface {
 
@@ -109,7 +110,7 @@ class PluginNextoolAiassistOpenAiProvider implements PluginNextoolAiassistProvid
          $decodedError = json_decode($body, true);
          $apiMessage = $decodedError['error']['message'] ?? null;
 
-         Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+         nextool_log('plugin_nextool_aiassist', sprintf(
             '[OPENAI] RequestException status=%s body=%s',
             $status ?: 'n/a',
             $body
@@ -124,7 +125,7 @@ class PluginNextoolAiassistOpenAiProvider implements PluginNextoolAiassistProvid
             'error' => $apiMessage ?: __('Falha ao conectar na API da OpenAI. Verifique a chave e permissões.', 'nextool')
          ];
       } catch (\Throwable $e) {
-         Toolbox::logInFile('plugin_nextool_aiassist', sprintf(
+         nextool_log('plugin_nextool_aiassist', sprintf(
             '[OPENAI] Erro inesperado: %s',
             $e->getMessage()
          ));

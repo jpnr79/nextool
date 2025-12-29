@@ -29,16 +29,7 @@ if (!defined('GLPI_ROOT')) {
 require_once GLPI_ROOT . '/plugins/nextool/inc/logmaintenance.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/modulemanager.class.php';
 require_once GLPI_ROOT . '/plugins/nextool/inc/validationattempt.class.php';
-
-if (!function_exists('nextool_log')) {
-   function nextool_log(string $file, string $message): void {
-      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-         Toolbox::logInFile($file, $message);
-      } else {
-         error_log('[' . $file . '] ' . $message);
-      }
-   }
-}
+require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
 
 class PluginNextoolLicenseValidator {
 
@@ -361,10 +352,7 @@ class PluginNextoolLicenseValidator {
 
          if ($useDistributionValidation && $httpCode === 401) {
             $warnings[] = __('Assinatura HMAC rejeitada pelo ContainerAPI. Recrie o segredo HMAC na aba de licença e valide novamente.', 'nextool');
-            Toolbox::logInFile(
-               'plugin_nextool',
-               sprintf('LicenseValidator: ContainerAPI retornou 401 (assinatura inválida) para %s.', $clientId ?: '(sem identificador)')
-            );
+            nextool_log('plugin_nextool', sprintf('LicenseValidator: ContainerAPI retornou 401 (assinatura inválida) para %s.', $clientId ?: '(sem identificador)'));
          }
 
          self::enforceFreeModeFallback('Falha ao comunicar com o ContainerAPI');

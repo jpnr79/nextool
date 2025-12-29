@@ -23,6 +23,11 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+// Shared logger helper
+if (file_exists(GLPI_ROOT . '/plugins/nextool/inc/logger.php')) {
+   require_once GLPI_ROOT . '/plugins/nextool/inc/logger.php';
+}
+
 function plugin_version_nextool() {
    return [
       'name'           => 'NexTool Solutions',
@@ -58,7 +63,12 @@ function plugin_init_nextool() {
          try {
             PluginNextoolConfig::getConfig();
          } catch (Exception $e) {
-            Toolbox::logInFile('plugin_nextool', "Erro ao inicializar client_identifier: " . $e->getMessage());
+            $__nextool_msg = "Erro ao inicializar client_identifier: " . $e->getMessage();
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
          }
       }
    }
@@ -99,7 +109,12 @@ function plugin_init_nextool() {
             PluginNextoolPermissionManager::syncModuleRights();
             
          } catch (Exception $e) {
-            Toolbox::logInFile('plugin_nextool', "Erro ao carregar módulos: " . $e->getMessage());
+            $__nextool_msg = "Erro ao carregar módulos: " . $e->getMessage();
+            if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
+               Toolbox::logInFile('plugin_nextool', $__nextool_msg);
+            } else {
+               error_log('[plugin_nextool] ' . $__nextool_msg);
+            }
          }
       }
    }
@@ -137,30 +152,36 @@ function plugin_nextool_check_prerequisites() {
    }
 
    if ($glpi_version === null) {
-      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-         Toolbox::logInFile('plugin_nextool', '[setup.php:plugin_nextool_check_prerequisites] ERROR: GLPI version not detected.');
+      if (function_exists('nextool_log')) {
+         nextool_log('plugin_nextool', '[setup.php:plugin_nextool_check_prerequisites] ERROR: GLPI version not detected.');
+      } else {
+         error_log('[plugin_nextool] [setup.php:plugin_nextool_check_prerequisites] ERROR: GLPI version not detected.');
       }
       echo "Não foi possível detectar a versão do GLPI. Verifique os logs.";
       return false;
    }
 
    if (version_compare($glpi_version, $min_version, '<')) {
-      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-         Toolbox::logInFile('plugin_nextool', sprintf(
+      if (function_exists('nextool_log')) {
+         nextool_log('plugin_nextool', sprintf(
             'ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is less than required minimum %s, user=%s',
             $glpi_version, $min_version, $_SESSION['glpiname'] ?? 'unknown'
          ));
+      } else {
+         error_log(sprintf('[plugin_nextool] ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is less than required minimum %s, user=%s', $glpi_version, $min_version, $_SESSION['glpiname'] ?? 'unknown'));
       }
       echo "Este plugin requer GLPI >= {$min_version}";
       return false;
    }
 
    if (version_compare($glpi_version, $max_version, '>')) {
-      if (class_exists('Toolbox') && method_exists('Toolbox', 'logInFile')) {
-         Toolbox::logInFile('plugin_nextool', sprintf(
+      if (function_exists('nextool_log')) {
+         nextool_log('plugin_nextool', sprintf(
             'ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is greater than supported maximum %s, user=%s',
             $glpi_version, $max_version, $_SESSION['glpiname'] ?? 'unknown'
          ));
+      } else {
+         error_log(sprintf('[plugin_nextool] ERROR [setup.php:plugin_nextool_check_prerequisites] GLPI version %s is greater than supported maximum %s, user=%s', $glpi_version, $max_version, $_SESSION['glpiname'] ?? 'unknown'));
       }
       echo "Este plugin é suportado até GLPI < {$max_version}";
       return false;
